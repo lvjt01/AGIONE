@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模创空间控制台 - 消耗明细</title>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3"></script>
+    <!-- Element Plus CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- Element Plus Icons CDN -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <!-- Vue I18n CDN -->
+    <script src="https://unpkg.com/vue-i18n@9/dist/vue-i18n.global.prod.js"></script>
+    <!-- TailwindCSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- TailwindCSS Configuration for custom colors and fonts -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4C5DF7',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"PingFang SC"', '"Microsoft YaHei"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style scoped>
+        /* Global UI Rules */
+        :root {
+            --el-color-primary: #4C5DF7;
+            --el-color-primary-light-9: #E8EAFE; /* A lighter shade for active background */
+        }
+        .el-table__header-wrapper {
+            background-color: #F8F8F8 !important;
+        }
+        .el-table thead th {
+            background-color: #F8F8F8 !important;
+            color: #606266 !important;
+            font-weight: 600 !important;
+        }
+        .el-table--enable-row-hover .el-table__body tr:hover > td {
+            background-color: #F5F7FA;
+        }
+        .el-table .cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-shadow {
+            box-shadow: 0 1px 5px 1px rgba(0,0,0,0.05);
+        }
+        body {
+            background-color: #FFFFFF; /* Default background for normal pages */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, '"PingFang SC"', '"Microsoft YaHei"', 'sans-serif';
+        }
+        .form-page-bg {
+            background-color: #F9FAFC; /* Background for form/creation pages */
+        }
+        
+        /* Unified styling for filter items */
+        .filter-item-wrapper {
+            display: flex;
+            border: 1px solid var(--el-border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white; /* Ensure consistent background */
+            height: 32px; /* Standard height for Element Plus inputs */
+        }
+        .filter-label-prepend {
+            background-color: #F5F7FA;
+            border-right: 1px solid var(--el-border-color);
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap; /* Prevent label from wrapping */
+            flex-shrink: 0; /* Prevent shrinking */
+            color: #606266; /* Match Element Plus prepend color */
+            font-size: 14px; /* Match Element Plus font size */
+        }
+        /* For el-input within filter-item-wrapper */
+        .filter-item-wrapper .el-input .el-input__wrapper {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+        /* For el-date-picker within filter-item-wrapper */
+        .filter-item-wrapper .el-date-editor .el-input__wrapper {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+        /* For el-select within filter-item-wrapper */
+        .filter-item-wrapper .el-select {
+            flex: 1; /* Allow select to take remaining space */
+        }
+        .filter-item-wrapper .el-select .el-input .el-input__wrapper {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+
+        .el-menu-item {
+            border-radius: 8px;
+            margin: 4px 0;
+        }
+        .el-menu-item.is-active {
+            background-color: var(--el-color-primary-light-9);
+            color: var(--el-color-primary);
+        }
+        .el-menu-item:hover {
+            background-color: var(--el-color-primary-light-9);
+            color: var(--el-color-primary);
+        }
+        .el-table th.el-table__cell {
+            background-color: #F8F8F8;
+            color: #606266;
+            font-weight: 600;
+        }
+        /* English mode specific styles */
+        .en-mode .title-case {
+            text-transform: capitalize; /* For Title Case, will need manual handling for words */
+        }
+        .en-mode .sentence-case {
+            /* Element Plus buttons/tags are usually sentence case by default for single words */
+        }
+        .en-mode .el-button, .en-mode .el-tag, .en-mode .el-select__placeholder, .en-mode .el-input__inner {
+            line-height: 1.5 !important; /* Suggest line height 1.5 */
+        }
+        .en-mode label, .en-mode .el-button {
+            min-width: 160px; /* Example min-width to prevent overflow */
+            word-break: keep-all; /* Prevent word breaks */
+            overflow-wrap: break-word; /* Allow word wrap for long words if necessary */
+        }
+        .en-mode .el-table .cell {
+            white-space: nowrap; /* Critical columns no wrap */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Ensure specific numeric fonts */
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Version Number -->
+        <div class="absolute top-0 right-0 p-2 text-xs text-gray-400">V2.4</div>
+
+        <!-- Top Navigation Bar -->
+        <el-header class="sticky top-0 z-50 bg-white shadow-sm flex items-center justify-between h-13 px-5 border-b border-gray-200">
+            <div class="flex items-center">
+                <div class="text-lg font-bold text-primary mr-8">模创空间控制台</div>
+                <el-menu mode="horizontal" class="!border-none !h-13">
+                    <el-menu-item index="1">App 切换</el-menu-item>
+                    <el-menu-item index="2">Region 选择</el-menu-item>
+                </el-menu>
+            </div>
+            <div class="flex items-center">
+                <!-- Language Toggle -->
+                <el-radio-group v-model="language" size="small" class="mr-4">
+                    <el-radio-button label="zh">中</el-radio-button>
+                    <el-radio-button label="en">En</el-radio-button>
+                </el-radio-group>
+                <el-dropdown>
+                    <span class="el-dropdown-link flex items-center cursor-pointer">
+                        <el-avatar :size="30" icon="el-icon-user-solid" class="mr-2"></el-avatar>
+                        用户菜单
+                        <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                    </span>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item>个人中心</el-dropdown-item>
+                            <el-dropdown-item>退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+            </div>
+        </el-header>
+
+        <!-- Main Content Area -->
+        <div class="flex flex-1">
+            <!-- Left Sidebar -->
+            <el-aside width="200px" class="bg-white p-4 border-r border-gray-200">
+                <el-menu :default-active="activeMenuIndex" class="el-menu-vertical-demo !border-none" @select="handleMenuSelect">
+                    <el-menu-item index="1">
+                        <el-icon><Tickets /></el-icon>
+                        <span>{{ $t('sidebar.consumptionDetails') }}</span>
+                    </el-menu-item>
+                    <el-menu-item index="2">
+                        <el-icon><Document /></el-icon>
+                        <span>{{ $t('sidebar.myEarnings') }}</span>
+                    </el-menu-item>
+                    <el-menu-item index="3">
+                        <el-icon><Setting /></el-icon>
+                        <span>{{ $t('sidebar.discountStrategy') }}</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-aside>
+
+            <el-main class="flex-1 p-6 bg-white">
+                <!-- Consumption Details View -->
+                <template v-if="activeMenuIndex === '1'">
+                    <!-- HeaderBox -->
+                    <div class="mb-6 flex justify-between items-center">
+                        <h1 class="text-2xl font-semibold">{{ $t('sidebar.consumptionDetails') }}</h1>
+                        <div>
+                            <el-button type="primary">{{ $t('common.export') }}</el-button>
+                        </div>
+                    </div>
+
+                    <!-- Dimension and Content Type Selectors -->
+                    <div class="mb-6 flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">{{ $t('dimension.label') }}:</span>
+                            <el-radio-group v-model="dimensionType" size="small">
+                                <el-radio-button label="time">{{ $t('dimension.timeDimension') }}</el-radio-button>
+                                <el-radio-button label="user">{{ $t('dimension.userDimension') }}</el-radio-button>
+                            </el-radio-group>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">{{ $t('content.label') }}:</span>
+                            <el-radio-group v-model="contentType" size="small">
+                                <el-radio-button label="application">{{ $t('content.application') }}</el-radio-button>
+                                <el-radio-button label="model">{{ $t('content.model') }}</el-radio-button>
+                            </el-radio-group>
+                        </div>
+                    </div>
+
+                    <!-- Settlement Data Statistics -->
+                    <div class="bg-white p-4 rounded-lg card-shadow mb-6">
+                        <h2 class="text-lg font-semibold mb-4">{{ $t('settlement.title') }}</h2>
+                        <el-descriptions :column="3" border size="small">
+                            <el-descriptions-item :label="$t('settlement.billingPeriod')">{{ settlementStats.billingPeriod }}</el-descriptions-item>
+                            <el-descriptions-item :label="$t('settlement.creditsToSettle')">
+                                <span class="tabular-nums">{{ settlementStats.creditsToSettle }}</span>
+                            </el-descriptions-item>
+                            <el-descriptions-item :label="$t('settlement.settledCredits')">
+                                <span class="tabular-nums">{{ settlementStats.settledCredits }}</span>
+                            </el-descriptions-item>
+                            <el-descriptions-item :label="$t('settlement.pendingCredits')">
+                                <span class="tabular-nums">{{ settlementStats.pendingCredits }}</span>
+                            </el-descriptions-item>
+                        </el-descriptions>
+                    </div>
+
+                    <!-- FilterBox -->
+                    <div class="bg-white p-4 rounded-lg card-shadow mb-6">
+                        <div :class="['grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-300 ease-in-out', {'max-h-0 overflow-hidden': !showMoreFilters, 'max-h-96': showMoreFilters}]">
+                            <!-- Billing Period -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.billingPeriod.label') }}</div>
+                                <el-date-picker
+                                    v-model="filters.billingPeriod"
+                                    type="month"
+                                    :placeholder="$t('filter.billingPeriod.placeholder')"
+                                    size="default"
+                                    class="flex-1"
+                                >
+                                </el-date-picker>
+                            </div>
+                            <!-- Usage Time -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.usageTime.label') }}</div>
+                                <el-date-picker
+                                    v-model="filters.usageTime"
+                                    type="datetimerange"
+                                    unlink-panels
+                                    range-separator="-"
+                                    :start-placeholder="$t('filter.usageTime.start')"
+                                    :end-placeholder="$t('filter.usageTime.end')"
+                                    size="default"
+                                    class="flex-1"
+                                >
+                                </el-date-picker>
+                            </div>
+                            <!-- User Name -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.userName.label') }}</div>
+                                <el-input v-model="filters.userName" :placeholder="$t('filter.userName.placeholder')" class="flex-1"></el-input>
+                            </div>
+                            <!-- Account Type -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.accountType.label') }}</div>
+                                <el-select v-model="filters.accountType" :placeholder="$t('filter.accountType.placeholder')" class="flex-1">
+                                    <el-option :label="$t('filter.accountType.mainAccount')" value="main"></el-option>
+                                    <el-option :label="$t('filter.accountType.subAccount')" value="sub"></el-option>
+                                </el-select>
+                            </div>
+                            <!-- Model Name -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.modelName.label') }}</div>
+                                <el-input v-model="filters.modelName" :placeholder="$t('filter.modelName.placeholder')" class="flex-1"></el-input>
+                            </div>
+                            <!-- Model Type -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.modelType.label') }}</div>
+                                <el-select v-model="filters.modelType" :placeholder="$t('filter.modelType.placeholder')" class="flex-1">
+                                    <el-option :label="$t('filter.modelType.languageModel')" value="语言模型"></el-option>
+                                    <el-option :label="$t('filter.modelType.textToImage')" value="文生图"></el-option>
+                                    <el-option :label="$t('filter.modelType.videoGeneration')" value="视频生成"></el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-4">
+                            <el-button type="primary" @click="search">{{ $t('common.search') }}</el-button>
+                            <el-button @click="resetFilters">{{ $t('common.reset') }}</el-button>
+                            <el-button link type="primary" @click="showMoreFilters = !showMoreFilters">
+                                {{ showMoreFilters ? $t('common.collapseFilters') : $t('common.expandFilters') }}
+                                <el-icon><ArrowUp v-if="showMoreFilters" /><ArrowDown v-else /></el-icon>
+                            </el-button>
+                        </div>
+                    </div>
+
+                    <!-- Table/Card View Toggle & Data Area -->
+                    <div class="bg-white p-4 rounded-lg card-shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <el-radio-group v-model="viewMode" size="small">
+                                <el-radio-button label="table">
+                                    <el-icon><Grid /></el-icon>
+                                </el-radio-button>
+                                <el-radio-button label="card">
+                                    <el-icon><Postcard /></el-icon>
+                                </el-radio-button>
+                            </el-radio-group>
+                            <!-- Removed "设置折扣" button -->
+                        </div>
+
+                        <div v-if="viewMode === 'table'">
+                            <el-table
+                                :data="paginatedTableData"
+                                v-loading="loading"
+                                style="width: 100%"
+                                border
+                                header-cell-class-name="!bg-[#F8F8F8] !text-[#606266] !font-semibold"
+                            >
+                                <!-- Conditional columns for dimension type -->
+                                <el-table-column v-if="dimensionType === 'user'" prop="userName" :label="$t('table.userName')" width="150"></el-table-column>
+                                <el-table-column v-if="dimensionType === 'user'" prop="accountType" :label="$t('table.accountType')" width="120"></el-table-column>
+                                
+                                <el-table-column v-if="dimensionType === 'time'" prop="usageTime" :label="$t('table.usageTime')" width="180"></el-table-column>
+                                <el-table-column v-if="dimensionType === 'time'" prop="userName" :label="$t('table.userName')" width="150"></el-table-column>
+                                <el-table-column v-if="dimensionType === 'time'" prop="accountType" :label="$t('table.accountType')" width="120"></el-table-column>
+
+                                <el-table-column prop="duration" :label="$t('table.duration')" width="120">
+                                    <template #default="{ row }">
+                                        <span class="tabular-nums">{{ row.duration }} ms</span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column prop="modelName" :label="$t('table.modelName')" width="180"></el-table-column>
+                                <el-table-column prop="modelType" :label="$t('table.modelType')" width="150"></el-table-column>
+                                <el-table-column prop="usageDetails" :label="$t('table.usageDetails')" min-width="200">
+                                    <template #default="{ row }">
+                                        <el-tooltip :content="row.usageDetailsTooltip" placement="top">
+                                            <span>{{ row.usageDetails }}</span>
+                                        </el-tooltip>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="deductionDetails" :label="$t('table.deductionDetails')" min-width="200">
+                                    <template #default="{ row }">
+                                        <el-tooltip :content="row.deductionDetailsTooltip" placement="top">
+                                            <span>{{ row.deductionDetails }}</span>
+                                        </el-tooltip>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="actualUsageDetails" :label="$t('table.actualUsageDetails')" min-width="200">
+                                    <template #default="{ row }">
+                                        <el-tooltip :content="row.actualUsageDetailsTooltip" placement="top">
+                                            <span>{{ row.actualUsageDetails }}</span>
+                                        </el-tooltip>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="billingRules" :label="$t('table.billingRules')" min-width="150"></el-table-column>
+                                <el-table-column prop="credits" :label="$t('table.credits')" width="100">
+                                    <template #default="{ row }">
+                                        <span class="tabular-nums">{{ row.credits }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column fixed="right" :label="$t('table.actions')" width="120">
+                                    <template #default="{ row }">
+                                        <el-button link type="primary" size="small" @click="showDetail(row)">{{ $t('common.detail') }}</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <el-empty v-if="!loading && paginatedTableData.length === 0" :description="$t('common.noData')" class="mt-4"></el-empty>
+                        </div>
+                        <div v-else-if="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                            <el-card v-for="item in paginatedTableData" :key="item.id" class="card-shadow">
+                                <template #header>
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold">{{ item.userName }} - {{ item.modelName }}</span>
+                                        <el-tag size="small">{{ item.modelType }}</el-tag>
+                                    </div>
+                                </template>
+                                <p v-if="dimensionType === 'time'"><strong>{{ $t('table.usageTime') }}:</strong> {{ item.usageTime }}</p>
+                                <p><strong>{{ $t('table.duration') }}:</strong> <span class="tabular-nums">{{ item.duration }} ms</span></p>
+                                <p v-if="dimensionType === 'time'"><strong>{{ $t('table.userName') }}:</strong> {{ item.userName }}</p>
+                                <p v-if="dimensionType === 'user'"><strong>{{ $t('table.userName') }}:</strong> {{ item.userName }}</p>
+                                <!-- Removed Account Type from My Earnings Card View -->
+                                <p><strong>{{ $t('table.usageDetails') }}:</strong> {{ item.usageDetails }}</p>
+                                <p><strong>{{ $t('table.deductionDetails') }}:</strong> {{ item.deductionDetails }}</p>
+                                <p><strong>{{ $t('table.actualUsageDetails') }}:</strong> {{ item.actualUsageDetails }}</p>
+                                <p><strong>{{ $t('table.credits') }}:</strong> <span class="tabular-nums">{{ item.credits }}</span></p>
+                                <div class="flex justify-end mt-2">
+                                    <el-button link type="primary" size="small" @click="showDetail(item)">{{ $t('common.detail') }}</el-button>
+                                </div>
+                            </el-card>
+                            <el-empty v-if="!loading && paginatedTableData.length === 0" :description="$t('common.noData')" class="mt-4"></el-empty>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="mt-4 flex justify-end">
+                            <el-pagination
+                                v-model:current-page="currentPage"
+                                v-model:page-size="pageSize"
+                                :page-sizes="[10, 20, 50, 100]"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                :total="tableData.length"
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                background
+                            />
+                        </div>
+                    </div>
+                </template>
+
+                <!-- My Earnings View -->
+                <template v-if="activeMenuIndex === '2'">
+                    <!-- HeaderBox -->
+                    <div class="mb-6 flex justify-between items-center">
+                        <h1 class="text-2xl font-semibold">{{ $t('sidebar.myEarnings') }}</h1>
+                        <div>
+                            <el-button type="primary">{{ $t('common.export') }}</el-button>
+                        </div>
+                    </div>
+
+                    <!-- Dimension and Content Type Selectors -->
+                    <div class="mb-6 flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">{{ $t('dimension.label') }}:</span>
+                            <el-radio-group v-model="dimensionType" size="small">
+                                <el-radio-button label="time">{{ $t('dimension.timeDimension') }}</el-radio-button>
+                                <el-radio-button label="user">{{ $t('dimension.userDimension') }}</el-radio-button>
+                            </el-radio-group>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">{{ $t('content.label') }}:</span>
+                            <el-radio-group v-model="contentType" size="small">
+                                <el-radio-button label="application">{{ $t('content.application') }}</el-radio-button>
+                                <el-radio-button label="model">{{ $t('content.model') }}</el-radio-button>
+                            </el-radio-group>
+                        </div>
+                    </div>
+
+                    <!-- Settlement Data Statistics -->
+                    <div class="bg-white p-4 rounded-lg card-shadow mb-6">
+                        <h2 class="text-lg font-semibold mb-4">{{ $t('settlement.title') }}</h2>
+                        <el-descriptions :column="3" border size="small">
+                            <el-descriptions-item :label="$t('settlement.billingPeriod')">{{ settlementStats.billingPeriod }}</el-descriptions-item>
+                            <el-descriptions-item :label="$t('settlement.creditsToSettle')">
+                                <span class="tabular-nums">{{ settlementStats.creditsToSettle }}</span>
+                            </el-descriptions-item>
+                            <el-descriptions-item :label="$t('settlement.settledCredits')">
+                                <span class="tabular-nums">{{ settlementStats.settledCredits }}</span>
+                            </el-descriptions-item>
+                            <el-descriptions-item :label="$t('settlement.pendingCredits')">
+                                <span class="tabular-nums">{{ settlementStats.pendingCredits }}</span>
+                            </el-descriptions-item>
+                        </el-descriptions>
+                    </div>
+
+                    <!-- FilterBox -->
+                    <div class="bg-white p-4 rounded-lg card-shadow mb-6">
+                        <div :class="['grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-all duration-300 ease-in-out', {'max-h-0 overflow-hidden': !showMoreFilters, 'max-h-96': showMoreFilters}]">
+                            <!-- Billing Period -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.billingPeriod.label') }}</div>
+                                <el-date-picker
+                                    v-model="filters.billingPeriod"
+                                    type="month"
+                                    :placeholder="$t('filter.billingPeriod.placeholder')"
+                                    size="default"
+                                    class="flex-1"
+                                >
+                                </el-date-picker>
+                            </div>
+                            <!-- Usage Time -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.usageTime.label') }}</div>
+                                <el-date-picker
+                                    v-model="filters.usageTime"
+                                    type="datetimerange"
+                                    unlink-panels
+                                    range-separator="-"
+                                    :start-placeholder="$t('filter.usageTime.start')"
+                                    :end-placeholder="$t('filter.usageTime.end')"
+                                    size="default"
+                                    class="flex-1"
+                                >
+                                </el-date-picker>
+                            </div>
+                            <!-- User Name -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.userName.label') }}</div>
+                                <el-input v-model="filters.userName" :placeholder="$t('filter.userName.placeholder')" class="flex-1"></el-input>
+                            </div>
+                            <!-- Model Name -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.modelName.label') }}</div>
+                                <el-input v-model="filters.modelName" :placeholder="$t('filter.modelName.placeholder')" class="flex-1"></el-input>
+                            </div>
+                            <!-- Model Type -->
+                            <div class="filter-item-wrapper">
+                                <div class="filter-label-prepend">{{ $t('filter.modelType.label') }}</div>
+                                <el-select v-model="filters.modelType" :placeholder="$t('filter.modelType.placeholder')" class="flex-1">
+                                    <el-option :label="$t('filter.modelType.languageModel')" value="语言模型"></el-option>
+                                    <el-option :label="$t('filter.modelType.textToImage')" value="文生图"></el-option>
+                                    <el-option :label="$t('filter.modelType.videoGeneration')" value="视频生成"></el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-4">
+                            <el-button type="primary" @click="search">{{ $t('common.search') }}</el-button>
+                            <el-button @click="resetFilters">{{ $t('common.reset') }}</el-button>
+                            <el-button link type="primary" @click="showMoreFilters = !showMoreFilters">
+                                {{ showMoreFilters ? $t('common.collapseFilters') : $t('common.expandFilters') }}
+                                <el-icon><ArrowUp v-if="showMoreFilters" /><ArrowDown v-else /></el-icon>
+                            </el-button>
+                        </div>
+                    </div>
+
+                    <!-- Table/Card View Toggle & Data Area -->
+                    <div class="bg-white p-4 rounded-lg card-shadow">
+                        <div class="flex justify-between items-center mb-4">
+                            <el-radio-group v-model="viewMode" size="small">
+                                <el-radio-button label="table">
+                                    <el-icon><Grid /></el-icon>
+                                </el-radio-button>
+                                <el-radio-button label="card">
+                                    <el-icon><Postcard /></el-icon>
+                                </el-radio-button>
+                            </el-radio-group>
+                            <!-- Re-added "设置折扣" button to My Earnings -->
+                            <div v-if="viewMode === 'table'">
+                                <el-button link type="primary" @click="handleDiscountSetting">{{ $t('table.discountSetting') }}</el-button>
+                            </div>
+                        </div>
+
+                        <div v-if="viewMode === 'table'">
+                            <el-table
+                                :data="paginatedTableData"
+                                v-loading="loading"
+                                style="width: 100%"
+                                border
+                                header-cell-class-name="!bg-[#F8F8F8] !text-[#606266] !font-semibold"
+                            >
+                                <!-- Conditional columns for dimension type -->
+                                <el-table-column v-if="dimensionType === 'user'" prop="userName" :label="$t('table.userName')" width="150"></el-table-column>
+                                
+                                <el-table-column v-if="dimensionType === 'time'" prop="usageTime" :label="$t('table.usageTime')" width="180"></el-table-column>
+                                <el-table-column v-if="dimensionType === 'time'" prop="userName" :label="$t('table.userName')" width="150"></el-table-column>
+
+                                <el-table-column prop="duration" :label="$t('table.duration')" width="120">
+                                    <template #default="{ row }">
+                                        <span class="tabular-nums">{{ row.duration }} ms</span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column prop="modelName" :label="$t('table.modelName')" width="180"></el-table-column>
+                                <el-table-column prop="modelType" :label="$t('table.modelType')" width="150"></el-table-column>
+                                <el-table-column prop="usageDetails" :label="$t('table.usageDetails')" min-width="200">
+                                    <template #default="{ row }">
+                                        <el-tooltip :content="row.usageDetailsTooltip" placement="top">
+                                            <span>{{ row.usageDetails }}</span>
+                                        </el-tooltip>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="deductionDetails" :label="$t('table.deductionDetails')" min-width="200">
+                                    <template #default="{ row }">
+                                        <el-tooltip :content="row.deductionDetailsTooltip" placement="top">
+                                            <span>{{ row.deductionDetails }}</span>
+                                        </el-tooltip>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="actualUsageDetails" :label="$t('table.actualUsageDetails')" min-width="200">
+                                    <template #default="{ row }">
+                                        <el-tooltip :content="row.actualUsageDetailsTooltip" placement="top">
+                                            <span>{{ row.actualUsageDetails }}</span>
+                                        </el-tooltip>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="billingRules" :label="$t('table.billingRules')" min-width="150"></el-table-column>
+                                <el-table-column prop="credits" :label="$t('table.credits')" width="100">
+                                    <template #default="{ row }">
+                                        <span class="tabular-nums">{{ row.credits }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column fixed="right" :label="$t('table.actions')" width="120">
+                                    <template #default="{ row }">
+                                        <el-button link type="primary" size="small" @click="showDetail(row)">{{ $t('common.detail') }}</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <el-empty v-if="!loading && paginatedTableData.length === 0" :description="$t('common.noData')" class="mt-4"></el-empty>
+                        </div>
+                        <div v-else-if="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                            <el-card v-for="item in paginatedTableData" :key="item.id" class="card-shadow">
+                                <template #header>
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold">{{ item.userName }} - {{ item.modelName }}</span>
+                                        <el-tag size="small">{{ item.modelType }}</el-tag>
+                                    </div>
+                                </template>
+                                <p v-if="dimensionType === 'time'"><strong>{{ $t('table.usageTime') }}:</strong> {{ item.usageTime }}</p>
+                                <p><strong>{{ $t('table.duration') }}:</strong> <span class="tabular-nums">{{ item.duration }} ms</span></p>
+                                <p v-if="dimensionType === 'time'"><strong>{{ $t('table.userName') }}:</strong> {{ item.userName }}</p>
+                                <p v-if="dimensionType === 'user'"><strong>{{ $t('table.userName') }}:</strong> {{ item.userName }}</p>
+                                <!-- Removed Account Type from My Earnings Card View -->
+                                <p><strong>{{ $t('table.usageDetails') }}:</strong> {{ item.usageDetails }}</p>
+                                <p><strong>{{ $t('table.deductionDetails') }}:</strong> {{ item.deductionDetails }}</p>
+                                <p><strong>{{ $t('table.actualUsageDetails') }}:</strong> {{ item.actualUsageDetails }}</p>
+                                <p><strong>{{ $t('table.credits') }}:</strong> <span class="tabular-nums">{{ item.credits }}</span></p>
+                                <div class="flex justify-end mt-2">
+                                    <el-button link type="primary" size="small" @click="showDetail(item)">{{ $t('common.detail') }}</el-button>
+                                </div>
+                            </el-card>
+                            <el-empty v-if="!loading && paginatedTableData.length === 0" :description="$t('common.noData')" class="mt-4"></el-empty>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="mt-4 flex justify-end">
+                            <el-pagination
+                                v-model:current-page="currentPage"
+                                v-model:page-size="pageSize"
+                                :page-sizes="[10, 20, 50, 100]"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                :total="tableData.length"
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                background
+                            />
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Discount Strategy Management View -->
+                <template v-if="activeMenuIndex === '3'">
+                    <h1 class="text-2xl font-semibold mb-6">{{ $t('sidebar.discountStrategy') }}</h1>
+                    <div class="bg-white p-4 rounded-lg card-shadow">
+                        <p class="text-gray-600 mb-4">{{ $t('discountStrategy.description') }}</p>
+                        <el-button type="primary" class="mt-4" @click="openAddStrategyDialog">{{ $t('discountStrategy.addStrategy') }}</el-button>
+
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold mb-2">{{ $t('discountStrategy.existingStrategies') }}</h3>
+                            <el-table :data="discountStrategies" border style="width: 100%">
+                                <el-table-column prop="name" :label="$t('discountStrategy.table.name')"></el-table-column>
+                                <el-table-column prop="userDisplay" :label="$t('discountStrategy.table.user')"></el-table-column>
+                                <el-table-column prop="modelDisplay" :label="$t('discountStrategy.table.model')"></el-table-column>
+                                <el-table-column prop="discount" :label="$t('discountStrategy.table.discount')">
+                                    <template #default="{ row }">
+                                        {{ row.discount / 10 }}折 ({{ row.discount }}%)
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="period" :label="$t('discountStrategy.table.period')">
+                                    <template #default="{ row }">
+                                        <span v-if="row.isLongTerm">{{ $t('form.effectivePeriod.longTerm') }}</span>
+                                        <span v-else>
+                                            {{ row.period[0] ? new Date(row.period[0]).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit' }) : '' }} ~
+                                            {{ row.period[1] ? new Date(row.period[1]).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit' }) : '' }}
+                                        </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column fixed="right" :label="$t('table.actions')" width="150">
+                                    <template #default="{ row }">
+                                        <el-button link type="primary" size="small" @click="openEditStrategyDialog(row)">{{ $t('common.edit') }}</el-button>
+                                        <el-button link type="danger" size="small" @click="deleteStrategy(row)">{{ $t('common.delete') }}</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <el-empty v-if="discountStrategies.length === 0" :description="$t('common.noData')" class="mt-4"></el-empty>
+                        </div>
+                    </div>
+                </template>
+            </el-main>
+        </div>
+
+        <!-- Detail Drawer -->
+        <el-drawer v-model="drawerVisible" :title="$t('drawer.detailTitle')" direction="rtl" size="1000px">
+            <template #header>
+                <h4 class="text-xl font-semibold">{{ $t('drawer.detailTitle') }}</h4>
+            </template>
+            <div v-if="selectedItem">
+                <el-descriptions :title="$t('drawer.baseInfo')" :column="2" border>
+                    <el-descriptions-item :label="$t('table.usageTime')">{{ selectedItem.usageTime }}</el-descriptions-item>
+                    <el-descriptions-item :label="$t('table.duration')"><span class="tabular-nums">{{ selectedItem.duration }} ms</span></el-descriptions-item>
+                    <el-descriptions-item :label="$t('table.userName')">{{ selectedItem.userName }}</el-descriptions-item>
+                    <el-descriptions-item v-if="activeMenuIndex === '1'" :label="$t('table.accountType')">{{ selectedItem.accountType }}</el-descriptions-item> <!-- Conditional display -->
+                    <el-descriptions-item :label="$t('table.modelName')">{{ selectedItem.modelName }}</el-descriptions-item>
+                    <el-descriptions-item :label="$t('table.modelType')">{{ selectedItem.modelType }}</el-descriptions-item>
+                    <el-descriptions-item :label="$t('table.credits')"><span class="tabular-nums">{{ selectedItem.credits }}</span></el-descriptions-item>
+                    <el-descriptions-item :label="$t('table.billingRules')">{{ selectedItem.billingRules }}</el-descriptions-item>
+                </el-descriptions>
+
+                <h5 class="text-lg font-semibold mt-6 mb-4">{{ $t('drawer.usageDetails') + '/' + $t('drawer.deductionDetails') + '/' + $t('drawer.actualUsageDetails') }}</h5>
+                <el-table :data="combinedDetailedData" border>
+                    <el-table-column prop="category" :label="$t('drawer.detailTable.category')" width="180"></el-table-column>
+                    <el-table-column prop="item" :label="$t('drawer.detailTable.item')"></el-table-column>
+                    <el-table-column prop="value" :label="$t('drawer.detailTable.value')">
+                        <template #default="{ row }">
+                            <span class="tabular-nums">{{ row.value }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="unit" :label="$t('drawer.detailTable.unit')"></el-table-column>
+                    <el-table-column prop="credits" :label="$t('drawer.detailTable.jifen')">
+                        <template #default="{ row }">
+                            <span class="tabular-nums">{{ row.credits }}</span>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+            <template #footer>
+                <div style="flex: auto">
+                    <el-button @click="drawerVisible = false">{{ $t('common.close') }}</el-button>
+                </div>
+            </template>
+        </el-drawer>
+
+        <!-- Discount Setting Dialog (Existing, not for Discount Strategy Add/Edit) -->
+        <el-dialog
+            v-model="discountDialogVisible"
+            :title="$t('dialog.discountSetting.title')"
+            width="60%"
+            :before-close="handleDiscountDialogClose"
+        >
+            <el-form :model="discountForm" label-width="120px">
+                <el-form-item :label="$t('dialog.discountSetting.customer')">
+                    <el-select v-model="discountForm.customer" multiple :placeholder="$t('dialog.discountSetting.selectCustomer')" class="w-full">
+                        <el-option label="用户A" value="userA"></el-option>
+                        <el-option label="用户B" value="userB"></el-option>
+                        <el-option label="用户C" value="userC"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="$t('dialog.discountSetting.models')">
+                    <el-select v-model="discountForm.models" multiple :placeholder="$t('dialog.discountSetting.selectModels')" class="w-full">
+                        <el-option label="Model A" value="modelA"></el-option>
+                        <el-option label="Model B" value="modelB"></el-option>
+                        <el-option label="Model C" value="modelC"></el-option>
+                    </el-select>
+                </el-form-item>
+                <!-- Selected Billing Period for Discount -->
+                <el-form-item :label="$t('dialog.discountSetting.selectedBillingPeriod.label')">
+                    <el-date-picker
+                        v-model="discountForm.billingPeriod"
+                        type="monthrange"
+                        unlink-panels
+                        range-separator="-"
+                        :start-placeholder="$t('form.effectivePeriod.start')"
+                        :end-placeholder="$t('form.effectivePeriod.end')"
+                        size="default"
+                        class="w-full"
+                        :disabled="discountForm.isLongTerm"
+                    >
+                    </el-date-picker>
+                    <el-checkbox v-model="discountForm.isLongTerm" class="ml-2">{{ $t('dialog.discountSetting.selectedBillingPeriod.longTerm') }}</el-checkbox>
+                </el-form-item>
+                <el-form-item :label="$t('dialog.discountSetting.discountRate')">
+                    <el-input-number v-model="discountForm.discountRate" :min="0" :max="100" :step="1" controls-position="right" /> %
+                </el-form-item>
+                <el-form-item :label="$t('dialog.discountSetting.subsidyCredits')">
+                    <el-input v-model="discountForm.subsidyCredits" disabled></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="discountDialogVisible = false">{{ $t('common.cancel') }}</el-button>
+                    <el-button type="primary" @click="submitDiscountForm">{{ $t('common.confirm') }}</el-button>
+                </span>
+            </template>
+        </el-dialog>
+
+        <!-- Add/Edit Discount Strategy Dialog (New) -->
+        <el-dialog
+            v-model="discountStrategyDialogVisible"
+            :title="isEditStrategy ? $t('dialog.editStrategy.title') : $t('dialog.addStrategy.title')"
+            width="60%"
+            :before-close="handleDiscountStrategyDialogClose"
+        >
+            <el-form :model="discountStrategyForm" label-width="120px">
+                <el-form-item :label="$t('form.strategyName.label')">
+                    <el-input v-model="discountStrategyForm.name" :placeholder="$t('form.strategyName.placeholder')"></el-input>
+                </el-form-item>
+                <el-form-item :label="$t('form.applicableUsers.label')">
+                    <el-select v-model="discountStrategyForm.users" multiple :placeholder="$t('form.applicableUsers.placeholder')" class="w-full">
+                        <el-option label="所有用户" value="all"></el-option>
+                        <el-option label="VIP 用户组" value="vip"></el-option>
+                        <el-option label="新注册用户" value="new_users"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="$t('form.applicableModels.label')">
+                    <el-select v-model="discountStrategyForm.models" multiple :placeholder="$t('form.applicableModels.placeholder')" class="w-full">
+                        <el-option label="所有模型" value="all"></el-option>
+                        <el-option label="Model A (Diffusion)" value="modelA"></el-option>
+                        <el-option label="Model B (Language)" value="modelB"></el-option>
+                        <el-option label="Model C (Image Rec.)" value="modelC"></el-option>
+                        <el-option label="图像生成模型" value="image_generation_model"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="$t('form.discountRate.label')">
+                    <el-input-number v-model="discountStrategyForm.discount" :min="0" :max="100" :step="0.1" controls-position="right" /> %
+                </el-form-item>
+                <el-form-item :label="$t('form.effectivePeriod.label')">
+                    <el-date-picker
+                        v-model="discountStrategyForm.period"
+                        type="monthrange"
+                        unlink-panels
+                        range-separator="-"
+                        :start-placeholder="$t('form.effectivePeriod.start')"
+                        :end-placeholder="$t('form.effectivePeriod.end')"
+                        size="default"
+                        class="w-full"
+                        :disabled="discountStrategyForm.isLongTerm"
+                    >
+                    </el-date-picker>
+                    <el-checkbox v-model="discountStrategyForm.isLongTerm" class="ml-2">{{ $t('form.effectivePeriod.longTerm') }}</el-checkbox>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="handleDiscountStrategyDialogClose(false)">{{ $t('common.cancel') }}</el-button>
+                    <el-button type="primary" @click="saveDiscountStrategy">{{ $t('common.confirm') }}</el-button>
+                </span>
+            </template>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus; // Added ElMessageBox
+
+        // i18n setup
+        const messages = {
+            zh: {
+                sidebar: {
+                    consumptionDetails: '消耗明细', // New i18n entry
+                    myEarnings: '我的收益',
+                    discountStrategy: '折扣策略',
+                    settings: '设置'
+                },
+                page: {
+                    title: '模创空间控制台 - 我的收益'
+                },
+                common: {
+                    export: '导出',
+                    search: '查询',
+                    reset: '重置',
+                    expandFilters: '展开更多筛选',
+                    collapseFilters: '收起筛选',
+                    detail: '详情',
+                    close: '关闭',
+                    cancel: '取消',
+                    confirm: '确认',
+                    edit: '编辑',
+                    delete: '删除',
+                    noData: '暂无数据',
+                    searchSuccess: '搜索成功',
+                    filtersReset: '筛选条件已重置',
+                },
+                dimension: {
+                    label: '维度',
+                    timeDimension: '时间维度',
+                    userDimension: '用户维度',
+                },
+                content: {
+                    label: '内容',
+                    application: '应用',
+                    model: '模型',
+                },
+                settlement: {
+                    title: '结算数据',
+                    billingPeriod: '账期',
+                    creditsToSettle: '应结算积分',
+                    settledCredits: '已结算积分',
+                    pendingCredits: '待结算积分',
+                },
+                filter: {
+                    billingPeriod: {
+                        label: '账期选择', // Reverted label
+                        placeholder: '请选择账期 (月)', // Reverted placeholder
+                    },
+                    usageTime: {
+                        label: '使用时间',
+                        start: '开始时间',
+                        end: '结束时间',
+                    },
+                    userName: {
+                        label: '用户名称',
+                        placeholder: '请输入用户名称',
+                    },
+                    modelName: {
+                        label: '模型名称',
+                        placeholder: '请输入模型名称',
+                    },
+                    modelType: {
+                        label: '模型类型',
+                        placeholder: '请选择模型类型',
+                        languageModel: '语言模型', // New i18n entry
+                        textToImage: '文生图', // New i18n entry
+                        videoGeneration: '视频生成', // New i18n entry
+                    },
+                    accountType: {
+                        label: '账户类型',
+                        placeholder: '请选择账户类型',
+                        mainAccount: '主账号',
+                        subAccount: '子账号',
+                    }
+                },
+                table: {
+                    usageTime: '使用时间',
+                    duration: '耗时',
+                    userName: '用户名称',
+                    accountType: '账户类型', // Still here for consumption details
+                    modelName: '模型名称',
+                    modelType: '模型类型',
+                    usageDetails: '使用情况',
+                    deductionDetails: '抵扣情况',
+                    actualUsageDetails: '实际使用情况',
+                    billingRules: '计费规则',
+                    credits: '积分',
+                    actions: '操作',
+                    discountSetting: '设置折扣',
+                },
+                drawer: {
+                    detailTitle: '使用详情',
+                    baseInfo: '基本信息',
+                    usageDetails: '详细使用情况',
+                    deductionDetails: '详细抵扣情况',
+                    actualUsageDetails: '实际使用明细',
+                    detailTable: {
+                        item: '项目',
+                        value: '数值',
+                        unit: '单位',
+                        jifen: '积分',
+                        category: '类别',
+                    }
+                },
+                dialog: {
+                    discountSetting: {
+                        title: '设置模型折扣',
+                        customer: '选择客户',
+                        selectCustomer: '请选择客户',
+                        models: '选择模型',
+                        selectModels: '请选择模型',
+                        selectedBillingPeriod: {
+                            label: '有效期', // Changed label
+                            placeholder: '请选择账期区间', // Changed placeholder
+                            longTerm: '长期有效', // New i18n entry
+                        },
+                        discountRate: '折扣率',
+                        subsidyCredits: '实际补贴积分',
+                        confirmClose: '您确定要关闭吗？未保存的更改将丢失。',
+                        success: '折扣设置成功！',
+                    },
+                    addStrategy: {
+                        title: '新增折扣策略',
+                    },
+                    editStrategy: {
+                        title: '编辑折扣策略',
+                    },
+                    strategyConfirmClose: '您确定要关闭吗？未保存的更改将丢失。',
+                    addStrategySuccess: '折扣策略添加成功！',
+                    editStrategySuccess: '折扣策略更新成功！',
+                    deleteStrategyConfirm: '确定要删除此折扣策略吗？',
+                    deleteStrategySuccess: '折扣策略删除成功！',
+                },
+                discountStrategy: { // New i18n entries
+                    description: '此处管理不同用户和模型的折扣策略。',
+                    addStrategy: '新增折扣策略',
+                    existingStrategies: '现有折扣策略',
+                    table: {
+                        name: '策略名称',
+                        user: '适用用户',
+                        model: '适用模型',
+                        discount: '折扣率',
+                        period: '有效期', // Changed label
+                    }
+                },
+                form: { // New i18n entries for strategy form
+                    strategyName: {
+                        label: '策略名称',
+                        placeholder: '请输入策略名称',
+                    },
+                    applicableUsers: {
+                        label: '适用用户',
+                        placeholder: '请选择适用用户',
+                        allUsersOption: '所有用户', // New i18n entry
+                        vipUsersOption: 'VIP 用户组', // New i18n entry
+                        newUsersOption: '新注册用户', // New i18n entry
+                    },
+                    applicableModels: {
+                        label: '适用模型',
+                        placeholder: '请选择适用模型',
+                        allModelsOption: '所有模型', // New i18n entry
+                        imageGenerationModelOption: '图像生成模型', // New i18n entry
+                    },
+                    discountRate: {
+                        label: '折扣率',
+                    },
+                    effectivePeriod: {
+                        label: '有效期', // Changed label
+                        start: '开始日期',
+                        end: '结束日期',
+                        longTerm: '长期有效', // New i18n entry
+                    }
+                }
+            },
+            en: {
+                sidebar: {
+                    consumptionDetails: 'Consumption Details', // New i18n entry
+                    myEarnings: 'My Earnings',
+                    discountStrategy: 'Discount Strategy',
+                    settings: 'Settings'
+                },
+                page: {
+                    title: 'Model Creation Space Console - My Earnings'
+                },
+                common: {
+                    export: 'Export',
+                    search: 'Search',
+                    reset: 'Reset',
+                    expandFilters: 'Expand Filters',
+                    collapseFilters: 'Collapse Filters',
+                    detail: 'Detail',
+                    close: 'Close',
+                    cancel: 'Cancel',
+                    confirm: 'Confirm',
+                    edit: 'Edit',
+                    delete: 'Delete',
+                    noData: 'No Data',
+                    searchSuccess: 'Search successful',
+                    filtersReset: 'Filters have been reset',
+                },
+                dimension: {
+                    label: 'Dimension',
+                    timeDimension: 'Time Dimension',
+                    userDimension: 'User Dimension',
+                },
+                content: {
+                    label: 'Content',
+                    application: 'Application',
+                    model: 'Model',
+                },
+                settlement: {
+                    title: 'Settlement Data',
+                    billingPeriod: 'Billing Period',
+                    creditsToSettle: 'Credits to be settled',
+                    settledCredits: 'Settled Credits',
+                    pendingCredits: 'Pending Settlement Credits',
+                },
+                filter: {
+                    billingPeriod: {
+                        label: 'Billing Period Select', // Reverted label
+                        placeholder: 'Please select billing month', // Reverted placeholder
+                    },
+                    usageTime: {
+                        label: 'Usage Time',
+                        start: 'Start Time',
+                        end: 'End Time',
+                    },
+                    userName: {
+                        label: 'User Name',
+                        placeholder: 'Please enter user name',
+                    },
+                    modelName: {
+                        label: 'Model Name',
+                        placeholder: 'Please enter model name',
+                    },
+                    modelType: {
+                        label: 'Model Type',
+                        placeholder: 'Please select model type',
+                        languageModel: 'Language Model', // New i18n entry
+                        textToImage: 'Text-to-Image', // New i18n entry
+                        videoGeneration: 'Video Generation', // New i18n entry
+                    },
+                    accountType: {
+                        label: 'Account Type',
+                        placeholder: 'Please select account type',
+                        mainAccount: 'Main Account',
+                        subAccount: 'Sub Account',
+                    }
+                },
+                table: {
+                    usageTime: 'Usage Time',
+                    duration: 'Duration',
+                    userName: 'User Name',
+                    accountType: 'Account Type', // Still here for consumption details
+                    modelName: 'Model Name',
+                    modelType: 'Model Type',
+                    usageDetails: 'Usage Details',
+                    deductionDetails: 'Deduction Details',
+                    actualUsageDetails: 'Actual Usage',
+                    billingRules: 'Billing Rules',
+                    credits: 'Credits',
+                    actions: 'Actions',
+                    discountSetting: 'Set Discount',
+                },
+                drawer: {
+                    detailTitle: 'Usage Detail',
+                    baseInfo: 'Basic Information',
+                    usageDetails: 'Detailed Usage',
+                    deductionDetails: 'Detailed Deduction',
+                    actualUsageDetails: 'Actual Usage Details',
+                    detailTable: {
+                        item: 'Item',
+                        value: 'Value',
+                        unit: 'Unit',
+                        jifen: 'Jifen',
+                    }
+                },
+                dialog: {
+                    discountSetting: {
+                        title: 'Set Model Discount',
+                        customer: 'Select Customer',
+                        selectCustomer: 'Please select customer',
+                        models: 'Select Models',
+                        selectModels: 'Please select models',
+                        selectedBillingPeriod: {
+                            label: 'Validity Period', // Changed label
+                            placeholder: 'Please select billing period range', // Changed placeholder
+                            longTerm: 'Long-term effective', // New i18n entry
+                        },
+                        discountRate: 'Discount Rate',
+                        subsidyCredits: 'Actual Subsidy Credits',
+                        confirmClose: 'Are you sure you want to close? Unsaved changes will be lost.',
+                        success: 'Discount set successfully!',
+                    },
+                    addStrategy: {
+                        title: 'Add Discount Strategy',
+                    },
+                    editStrategy: {
+                        title: 'Edit Discount Strategy',
+                    },
+                    strategyConfirmClose: 'Are you sure you want to close? Unsaved changes will be lost.',
+                    addStrategySuccess: 'Discount strategy added successfully!',
+                    editStrategySuccess: 'Discount strategy updated successfully!',
+                    deleteStrategyConfirm: 'Are you sure you want to delete this discount strategy?',
+                    deleteStrategySuccess: 'Discount strategy deleted successfully!',
+                },
+                discountStrategy: { // New i18n entries
+                    description: 'Manage discount strategies for different users and models here.',
+                    addStrategy: 'Add Discount Strategy',
+                    existingStrategies: 'Existing Discount Strategies',
+                    table: {
+                        name: 'Strategy Name',
+                        user: 'Applicable Users',
+                        model: 'Applicable Models',
+                        discount: 'Discount Rate',
+                        period: 'Validity Period', // Changed label
+                    }
+                },
+                form: { // New i18n entries for strategy form
+                    strategyName: {
+                        label: 'Strategy Name',
+                        placeholder: 'Please enter strategy name',
+                    },
+                    applicableUsers: {
+                        label: 'Applicable Users',
+                        placeholder: 'Please select applicable users',
+                        allUsersOption: 'All Users', // New i18n entry
+                        vipUsersOption: 'VIP User Group', // New i18n entry
+                        newUsersOption: 'New Registered Users', // New i18n entry
+                    },
+                    applicableModels: {
+                        label: 'Applicable Models',
+                        placeholder: 'Please select applicable models',
+                        allModelsOption: 'All Models', // New i18n entry
+                        imageGenerationModelOption: 'Image Generation Model', // New i18n entry
+                    },
+                    discountRate: {
+                        label: 'Discount Rate',
+                    },
+                    effectivePeriod: {
+                        label: 'Validity Period', // Changed label
+                        start: 'Start Date',
+                        end: 'End Date',
+                        longTerm: 'Long-term effective', // New i18n entry
+                    }
+                }
+            },
+        };
+
+        const i18n = VueI18n.createI18n({
+            locale: 'zh',
+            fallbackLocale: 'en',
+            messages,
+        });
+
+        const app = createApp({
+            setup() {
+                const language = ref('zh');
+                const viewMode = ref('table'); // 'table' or 'card'
+                const loading = ref(false);
+                const showMoreFilters = ref(true); // Default expanded
+
+                const activeMenuIndex = ref('1'); // Default to Consumption Details
+
+                const dimensionType = ref('time'); // 'time' or 'user'
+                const contentType = ref('model'); // 'application' or 'model'
+
+                const settlementStats = ref({
+                    billingPeriod: '2023年10月',
+                    creditsToSettle: '12,345',
+                    settledCredits: '10,000',
+                    pendingCredits: '2,345',
+                });
+
+                const filters = ref({
+                    billingPeriod: new Date(), // Reverted to current month
+                    usageTime: '',
+                    userName: '',
+                    modelName: '',
+                    modelType: '',
+                    accountType: '',
+                });
+
+                const tableData = ref([
+                    {
+                        id: 1,
+                        usageTime: '2023-10-26 10:30:00',
+                        duration: 120,
+                        userName: '用户A',
+                        accountType: '主账号',
+                        modelName: 'Model A (Diffusion)',
+                        modelType: '语言模型', // Updated model type
+                        usageDetails: '输入：1000Token，输出：500Token', // Updated
+                        usageDetailsTooltip: 'Token Usage: 1000 units, Output: 500 units',
+                        deductionDetails: '输入：100Token，输出：20Token', // Updated
+                        deductionDetailsTooltip: 'Deducted Input: 100 units, Output: 20 units',
+                        actualUsageDetails: '输入：900Token，输出：480Token', // Updated
+                        actualUsageDetailsTooltip: 'Actual Input: 900 units, Output: 480 units',
+                        billingRules: '输入：100Token=1积分，输出：100Token=2积分', // Updated
+                        credits: 100,
+                        detailedUsage: [
+                            { item: 'Tokens Input', value: 1000, unit: 'Token', credits: 10 },
+                            { item: 'Tokens Output', value: 500, unit: 'Token', credits: 5 }
+                        ],
+                        detailedDeduction: [
+                            { item: 'Tokens Input', value: 100, unit: 'Token', credits: 1 },
+                            { item: 'Tokens Output', value: 20, unit: 'Token', credits: 0.2 }
+                        ],
+                        detailedActualUsage: [
+                            { item: 'Tokens Input', value: 900, unit: 'Token', credits: 9 },
+                            { item: 'Tokens Output', value: 480, unit: 'Token', credits: 4.8 }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        usageTime: '2023-10-26 11:00:00',
+                        duration: 500,
+                        userName: '用户B',
+                        accountType: '子账号',
+                        modelName: 'Model B (Language)',
+                        modelType: '文生图',
+                        usageDetails: '生成图片数量：10张',
+                        usageDetailsTooltip: 'Generated Images: 10',
+                        deductionDetails: '生成图片数量：2张',
+                        deductionDetailsTooltip: 'Deducted Images: 2',
+                        actualUsageDetails: '生成图片数量：8张',
+                        actualUsageDetailsTooltip: 'Actual Generated Images: 8',
+                        billingRules: '1张=1积分',
+                        credits: 500,
+                        detailedUsage: [
+                            { item: 'Images Generated', value: 10, unit: '张', credits: 100 }
+                        ],
+                        detailedDeduction: [
+                            { item: 'Images Deducted', value: 2, unit: '张', credits: 20 }
+                        ],
+                        detailedActualUsage: [
+                            { item: 'Images Paid', value: 8, unit: '张', credits: 80 }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        usageTime: '2023-10-26 11:30:00',
+                        duration: 300,
+                        userName: '用户A',
+                        accountType: '主账号',
+                        modelName: 'Model C (Image Rec.)',
+                        modelType: '视频生成',
+                        usageDetails: '标准×5S',
+                        usageDetailsTooltip: 'Standard 5 Seconds',
+                        deductionDetails: '标准×1S',
+                        deductionDetailsTooltip: 'Deducted 1 Second',
+                        actualUsageDetails: '标准×4S',
+                        actualUsageDetailsTooltip: 'Actual 4 Seconds',
+                        billingRules: '标准×5S=10积分',
+                        credits: 30,
+                        detailedUsage: [
+                            { item: 'Video Duration', value: 5, unit: '秒', credits: 50 }
+                        ],
+                        detailedDeduction: [
+                            { item: 'Video Deduction', value: 1, unit: '秒', credits: 10 }
+                        ],
+                        detailedActualUsage: [
+                            { item: 'Video Paid', value: 4, unit: '秒', credits: 40 }
+                        ]
+                    },
+                ]);
+
+                // Dummy data for Discount Strategies
+                const discountStrategies = ref([
+                    {
+                        id: 1,
+                        name: 'VIP 用户全模型折扣',
+                        users: ['vip'],
+                        userDisplay: 'VIP 用户组',
+                        models: ['all'],
+                        modelDisplay: '所有模型',
+                        discount: 80, // 80% means 8折
+                        period: [new Date('2023-10-01'), new Date('2024-10-01')],
+                        isLongTerm: false,
+                    },
+                    {
+                        id: 2,
+                        name: '新用户图像生成模型优惠',
+                        users: ['new_users'],
+                        userDisplay: '新注册用户',
+                        models: ['image_generation_model'],
+                        modelDisplay: '图像生成模型',
+                        discount: 90, // 90% means 9折
+                        period: [new Date('2023-11-01'), new Date('2024-05-01')],
+                        isLongTerm: false,
+                    },
+                    {
+                        id: 3,
+                        name: '长期有效通用折扣',
+                        users: ['all'],
+                        userDisplay: '所有用户',
+                        models: ['all'],
+                        modelDisplay: '所有模型',
+                        discount: 95,
+                        period: null,
+                        isLongTerm: true,
+                    }
+                ]);
+
+
+                // New computed property to combine detailed usage, deduction, and actual usage
+                const combinedDetailedData = computed(() => {
+                    if (!selectedItem.value) return [];
+                    const currentI18n = i18n.global; // Access i18n instance from the scope
+
+                    const usage = selectedItem.value.detailedUsage.map(detail => ({
+                        ...detail,
+                        category: currentI18n.t('drawer.usageDetails'),
+                    }));
+                    const deduction = selectedItem.value.detailedDeduction.map(detail => ({
+                        ...detail,
+                        category: currentI18n.t('drawer.deductionDetails'),
+                    }));
+                    const actualUsage = selectedItem.value.detailedActualUsage.map(detail => ({
+                        ...detail,
+                        category: currentI18n.t('drawer.actualUsageDetails'),
+                    }));
+
+                    return [...usage, ...deduction, ...actualUsage];
+                });
+
+
+                const currentPage = ref(1);
+                const pageSize = ref(10);
+
+                const paginatedTableData = computed(() => {
+                    const start = (currentPage.value - 1) * pageSize.value;
+                    const end = start + pageSize.value;
+                    return tableData.value.slice(start, end);
+                });
+
+                watch(language, (newLang) => {
+                    i18n.global.locale.value = newLang;
+                    document.body.className = newLang === 'en' ? 'antialiased en-mode' : 'antialiased';
+                    // Update document title based on active menu index
+                    if (activeMenuIndex.value === '1') {
+                         document.title = i18n.global.t('sidebar.consumptionDetails') + ' - ' + i18n.global.t('page.title').split(' - ')[0];
+                    } else if (activeMenuIndex.value === '2') {
+                         document.title = i18n.global.t('sidebar.myEarnings') + ' - ' + i18n.global.t('page.title').split(' - ')[0];
+                    } else if (activeMenuIndex.value === '3') {
+                         document.title = i18n.global.t('sidebar.discountStrategy') + ' - ' + i18n.global.t('page.title').split(' - ')[0];
+                    }
+                });
+
+                const search = () => {
+                    loading.value = true;
+                    // Simulate API call
+                    setTimeout(() => {
+                        console.log('Searching with filters:', filters.value);
+                        // Filter logic would go here
+                        loading.value = false;
+                        currentPage.value = 1; // Reset to first page on search
+                        ElMessage.success(i18n.global.t('common.searchSuccess'));
+                    }, 500);
+                };
+
+                const resetFilters = () => {
+                    filters.value = {
+                        billingPeriod: new Date(), // Reverted to current month
+                        usageTime: '',
+                        userName: '',
+                        modelName: '',
+                        modelType: '',
+                        accountType: '',
+                    };
+                    search(); // Trigger search after resetting
+                    ElMessage.info(i18n.global.t('common.filtersReset'));
+                };
+
+                const handleSizeChange = (val) => {
+                    pageSize.value = val;
+                };
+
+                const handleCurrentChange = (val) => {
+                    currentPage.value = val;
+                };
+
+                // Drawer for details
+                const drawerVisible = ref(false);
+                const selectedItem = ref(null);
+
+                const showDetail = (row) => {
+                    selectedItem.value = row;
+                    drawerVisible.value = true;
+                };
+
+                // Dialog for discount setting (now specific to consumption details or other context, not My Earnings table)
+                const discountDialogVisible = ref(false);
+                const discountForm = ref({
+                    customer: [],
+                    models: [],
+                    billingPeriod: [], // Initialize for monthrange
+                    isLongTerm: false, // New for discountForm
+                    discountRate: 0,
+                    subsidyCredits: 0, // Calculated value
+                });
+
+                const handleDiscountSetting = () => {
+                    // Reset discountForm for a new setting
+                    discountForm.value = {
+                        customer: [],
+                        models: [],
+                        billingPeriod: [],
+                        isLongTerm: false,
+                        discountRate: 0,
+                        subsidyCredits: 0,
+                    };
+                    discountDialogVisible.value = true;
+                };
+
+                const handleDiscountDialogClose = (done) => {
+                    ElMessageBox.confirm(i18n.global.t('dialog.discountSetting.confirmClose'))
+                        .then(() => {
+                            done();
+                        })
+                        .catch(() => {
+                            // catch error
+                        });
+                };
+
+                const submitDiscountForm = () => {
+                    console.log('Discount Form submitted:', discountForm.value);
+                    ElMessage.success(i18n.global.t('dialog.discountSetting.success'));
+                    discountDialogVisible.value = false;
+                };
+
+
+                // New: Discount Strategy Add/Edit Dialog Logic
+                const discountStrategyDialogVisible = ref(false);
+                const isEditStrategy = ref(false);
+                const currentStrategyId = ref(null);
+                const discountStrategyForm = ref({
+                    id: null,
+                    name: '',
+                    users: [],
+                    models: [],
+                    discount: 100, // Default to 100% (no discount)
+                    period: null, // [start_date, end_date]
+                    isLongTerm: false, // New field for long-term validity
+                });
+
+                const resetDiscountStrategyForm = () => {
+                    discountStrategyForm.value = {
+                        id: null,
+                        name: '',
+                        users: [],
+                        models: [],
+                        discount: 100,
+                        period: null,
+                        isLongTerm: false,
+                    };
+                };
+
+                const openAddStrategyDialog = () => {
+                    isEditStrategy.value = false;
+                    resetDiscountStrategyForm();
+                    discountStrategyDialogVisible.value = true;
+                };
+
+                const openEditStrategyDialog = (row) => {
+                    isEditStrategy.value = true;
+                    // Deep copy to avoid modifying directly
+                    const copiedRow = JSON.parse(JSON.stringify(row));
+                    // Convert period string back to Date objects for picker if necessary
+                    if (copiedRow.period && !copiedRow.isLongTerm) {
+                        copiedRow.period = copiedRow.period.map(dateStr => new Date(dateStr));
+                    } else if (copiedRow.isLongTerm) {
+                         copiedRow.period = null; // Picker should be empty if long-term
+                    }
+                    discountStrategyForm.value = copiedRow;
+                    currentStrategyId.value = row.id;
+                    discountStrategyDialogVisible.value = true;
+                };
+
+                const saveDiscountStrategy = () => {
+                    if (!discountStrategyForm.value.name) {
+                        ElMessage.error(i18n.global.t('form.strategyName.placeholder'));
+                        return;
+                    }
+                    if (!discountStrategyForm.value.isLongTerm && (!discountStrategyForm.value.period || discountStrategyForm.value.period.length !== 2)) {
+                        ElMessage.error(i18n.global.t('form.effectivePeriod.placeholder')); // Assuming a placeholder for period is available. If not, use generic error.
+                        return;
+                    }
+
+                    // Helper to map values to display strings
+                    const getUserDisplay = (usersArray) => {
+                        return usersArray.map(u => {
+                            if (u === 'all') return i18n.global.t('form.applicableUsers.allUsersOption');
+                            if (u === 'vip') return i18n.global.t('form.applicableUsers.vipUsersOption');
+                            if (u === 'new_users') return i18n.global.t('form.applicableUsers.newUsersOption');
+                            return u;
+                        }).join(', ');
+                    };
+
+                    const getModelDisplay = (modelsArray) => {
+                        return modelsArray.map(m => {
+                            if (m === 'all') return i18n.global.t('form.applicableModels.allModelsOption');
+                            if (m === '语言模型') return i18n.global.t('filter.modelType.languageModel');
+                            if (m === '文生图') return i18n.global.t('filter.modelType.textToImage');
+                            if (m === '视频生成') return i18n.global.t('filter.modelType.videoGeneration');
+                            return m;
+                        }).join(', ');
+                    };
+
+                    const newStrategyData = {
+                        ...discountStrategyForm.value,
+                        userDisplay: getUserDisplay(discountStrategyForm.value.users),
+                        modelDisplay: getModelDisplay(discountStrategyForm.value.models),
+                        // Convert period to strings for consistent storage if not long-term
+                        period: discountStrategyForm.value.isLongTerm ? null : discountStrategyForm.value.period.map(date => date.toISOString()),
+                    };
+
+                    if (isEditStrategy.value) {
+                        const index = discountStrategies.value.findIndex(s => s.id === currentStrategyId.value);
+                        if (index !== -1) {
+                            discountStrategies.value[index] = newStrategyData;
+                            ElMessage.success(i18n.global.t('dialog.editStrategySuccess'));
+                        }
+                    } else {
+                        const newId = discountStrategies.value.length > 0 ? Math.max(...discountStrategies.value.map(s => s.id)) + 1 : 1;
+                        discountStrategies.value.push({ ...newStrategyData, id: newId });
+                        ElMessage.success(i18n.global.t('dialog.addStrategySuccess'));
+                    }
+                    discountStrategyDialogVisible.value = false;
+                };
+
+                const handleDiscountStrategyDialogClose = (done) => {
+                    ElMessageBox.confirm(i18n.global.t('dialog.strategyConfirmClose'))
+                        .then(() => {
+                            if (done && typeof done === 'function') { // Check if 'done' is provided by Element Plus
+                                done();
+                            } else { // Fallback for manual closing
+                                discountStrategyDialogVisible.value = false;
+                            }
+                        })
+                        .catch(() => {
+                            // catch error
+                        });
+                };
+
+                const deleteStrategy = (row) => {
+                    ElMessageBox.confirm(
+                        i18n.global.t('dialog.deleteStrategyConfirm'),
+                        'Warning',
+                        {
+                            confirmButtonText: i18n.global.t('common.confirm'),
+                            cancelButtonText: i18n.global.t('common.cancel'),
+                            type: 'warning',
+                        }
+                    )
+                    .then(() => {
+                        discountStrategies.value = discountStrategies.value.filter(s => s.id !== row.id);
+                        ElMessage.success(i18n.global.t('dialog.deleteStrategySuccess'));
+                    })
+                    .catch(() => {
+                        ElMessage.info(i18n.global.t('common.cancel'));
+                    });
+                };
+
+
+                // Menu selection handler
+                const handleMenuSelect = (index) => {
+                    activeMenuIndex.value = index;
+                    // Update page title based on selected menu
+                    if (index === '1') {
+                         document.title = i18n.global.t('sidebar.consumptionDetails') + ' - ' + i18n.global.t('page.title').split(' - ')[0];
+                    } else if (index === '2') {
+                         document.title = i18n.global.t('sidebar.myEarnings') + ' - ' + i18n.global.t('page.title').split(' - ')[0];
+                    } else if (index === '3') {
+                         document.title = i18n.global.t('sidebar.discountStrategy') + ' - ' + i18n.global.t('page.title').split(' - ')[0];
+                    }
+                };
+
+                return {
+                    language,
+                    viewMode,
+                    loading,
+                    showMoreFilters,
+                    activeMenuIndex, // Exposed activeMenuIndex
+                    dimensionType,
+                    contentType,
+                    settlementStats,
+                    filters,
+                    tableData,
+                    paginatedTableData,
+                    discountStrategies, // Exposed discountStrategies
+                    currentPage,
+                    pageSize,
+                    search,
+                    resetFilters,
+                    handleSizeChange,
+                    handleCurrentChange,
+                    drawerVisible,
+                    selectedItem,
+                    showDetail,
+                    discountDialogVisible,
+                    discountForm,
+                    handleDiscountSetting,
+                    handleDiscountDialogClose,
+                    submitDiscountForm,
+                    handleMenuSelect, // Exposed handleMenuSelect
+                    
+                    // New for Discount Strategy Add/Edit
+                    discountStrategyDialogVisible,
+                    isEditStrategy,
+                    discountStrategyForm,
+                    openAddStrategyDialog,
+                    openEditStrategyDialog,
+                    saveDiscountStrategy,
+                    handleDiscountStrategyDialogClose,
+                    deleteStrategy, // Exposed delete strategy
+                    combinedDetailedData, // Expose combinedDetailedData
+                };
+            },
+        });
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component);
+        }
+        app.use(ElementPlus);
+        app.use(i18n);
+        app.mount('#app');
+    </script>
+</body>
+</html>
