@@ -169,7 +169,14 @@
           </div>
           <div id="filter-body" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
             <div class="space-y-1">
-              <label class="text-sm text-muted">账期选择</label>
+              <label class="text-sm text-muted">统计粒度</label>
+              <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-2">
+                <button id="granularity-month" class="px-3 py-1 rounded-full bg-brand-500 text-white text-sm">月</button>
+                <button id="granularity-day" class="px-3 py-1 rounded-full text-muted hover:bg-white text-sm">日</button>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <label id="billing-label" class="text-sm text-muted">账单月份</label>
               <div class="relative">
                 <input id="billing-period" type="month" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200" value="2026-01" />
                 <i class="fa fa-calendar absolute right-3 top-3 text-muted"></i>
@@ -652,17 +659,21 @@
     const billingSummary = document.getElementById('billing-summary');
     const startTime = document.getElementById('start-time');
     const endTime = document.getElementById('end-time');
+    const granularityMonth = document.getElementById('granularity-month');
+    const granularityDay = document.getElementById('granularity-day');
+    const billingLabel = document.getElementById('billing-label');
 
-    const updateTimeRange = () => {
-      const value = billingInput.value || '2026-01';
-      billingSummary.textContent = value;
+    const pad = (n) => String(n).padStart(2, '0');
+    const toLocal = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const toDate = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const toMonth = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+
+    let mode = 'month';
+
+    const updateRangeByMonth = (value) => {
       const [year, month] = value.split('-').map(Number);
       const start = new Date(year, month - 1, 1, 0, 0, 0);
       const end = new Date(year, month, 0, 23, 59, 59);
-      const toLocal = (date) => {
-        const pad = (n) => String(n).padStart(2, '0');
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-      };
       const minVal = toLocal(start);
       const maxVal = toLocal(end);
       startTime.min = minVal;
@@ -677,8 +688,54 @@
       }
     };
 
-    billingInput.addEventListener('change', updateTimeRange);
-    updateTimeRange();
+    const updateRangeByDay = (value) => {
+      const [year, month, day] = value.split('-').map(Number);
+      const start = new Date(year, month - 1, day, 0, 0, 0);
+      const end = new Date(year, month - 1, day, 23, 59, 59);
+      const minVal = toLocal(start);
+      const maxVal = toLocal(end);
+      startTime.min = minVal;
+      startTime.max = maxVal;
+      endTime.min = minVal;
+      endTime.max = maxVal;
+      startTime.value = minVal;
+      endTime.value = maxVal;
+    };
+
+    const setMode = (nextMode) => {
+      mode = nextMode;
+      const now = new Date();
+      granularityMonth.className = mode === 'month' ? 'px-3 py-1 rounded-full bg-brand-500 text-white text-sm' : 'px-3 py-1 rounded-full text-muted hover:bg-white text-sm';
+      granularityDay.className = mode === 'day' ? 'px-3 py-1 rounded-full bg-brand-500 text-white text-sm' : 'px-3 py-1 rounded-full text-muted hover:bg-white text-sm';
+      if (mode === 'month') {
+        billingLabel.textContent = '账单月份';
+        billingInput.type = 'month';
+        billingInput.value = toMonth(now);
+        billingSummary.textContent = billingInput.value;
+        updateRangeByMonth(billingInput.value);
+      } else {
+        billingLabel.textContent = '账单日期';
+        billingInput.type = 'date';
+        billingInput.value = toDate(now);
+        billingSummary.textContent = billingInput.value;
+        updateRangeByDay(billingInput.value);
+      }
+    };
+
+    billingInput.addEventListener('change', () => {
+      if (mode === 'month') {
+        billingSummary.textContent = billingInput.value;
+        updateRangeByMonth(billingInput.value);
+      } else {
+        billingSummary.textContent = billingInput.value;
+        updateRangeByDay(billingInput.value);
+      }
+    });
+
+    granularityMonth.addEventListener('click', () => setMode('month'));
+    granularityDay.addEventListener('click', () => setMode('day'));
+
+    setMode('month');
 
     const discountModal = document.getElementById('discount-modal');
     const discountBackdrop = document.getElementById('discount-backdrop');
