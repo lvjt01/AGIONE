@@ -62,6 +62,18 @@
       .sidebar-collapsed .nav-group {
         display: none;
       }
+      .chip {
+        @apply inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm text-ink;
+      }
+      .chip button {
+        @apply text-muted hover:text-brand-600;
+      }
+      .multi-select {
+        @apply w-full border border-slate-200 rounded-lg px-2 py-2 text-sm flex flex-wrap gap-2 items-center min-h-[44px];
+      }
+      .multi-select input {
+        @apply outline-none border-0 flex-1 min-w-[120px];
+      }
     }
   </style>
 </head>
@@ -131,9 +143,9 @@
             <h2 class="text-2xl font-semibold section-title">我的收益</h2>
             <div class="flex flex-wrap items-center gap-3 text-sm">
               <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1">
-                <span class="text-muted">维度</span>
-                <button id="btn-user-dimension" class="px-2 py-0.5 rounded-full bg-brand-500 text-white">用户维度</button>
-                <button id="btn-time-dimension" class="px-2 py-0.5 rounded-full text-muted hover:bg-slate-100">时间维度</button>
+                <span class="text-muted">视图</span>
+                <button id="btn-user-dimension" class="px-2 py-0.5 rounded-full bg-brand-500 text-white">用户模型汇总</button>
+                <button id="btn-time-dimension" class="px-2 py-0.5 rounded-full text-muted hover:bg-slate-100">使用明细</button>
               </div>
               <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1">
                 <span class="text-muted">内容</span>
@@ -227,7 +239,7 @@
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold">我的收益明细表格</h3>
             <div class="flex items-center gap-3">
-              <button id="open-discount" class="px-3 py-1.5 rounded-lg bg-brand-500 text-white text-sm">设置折扣</button>
+              <a href="折扣策略.html" class="px-3 py-1.5 rounded-lg bg-brand-500 text-white text-sm">设置折扣</a>
               <div class="flex items-center gap-2 text-muted">
               <button class="w-8 h-8 rounded-lg border border-slate-200 hover:text-brand-600"><i class="fa fa-sliders"></i></button>
               <button class="w-8 h-8 rounded-lg border border-slate-200 hover:text-brand-600"><i class="fa fa-refresh"></i></button>
@@ -391,7 +403,7 @@
   <!-- Discount modal -->
   <div id="discount-modal" class="fixed inset-0 hidden items-center justify-center px-4">
     <div id="discount-backdrop" class="absolute inset-0 bg-black/40"></div>
-    <div class="relative bg-white rounded-2xl shadow-soft w-full max-w-3xl z-10">
+    <div class="relative bg-white rounded-2xl shadow-soft w-full max-w-3xl z-10 flex flex-col max-h-[85vh]">
       <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
         <div>
           <p class="text-sm text-muted">设置折扣</p>
@@ -399,26 +411,73 @@
         </div>
         <button id="discount-close" class="text-muted hover:text-brand-600"><i class="fa fa-times"></i></button>
       </div>
-      <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="p-6 overflow-auto">
+        <div class="grid grid-cols-1 gap-4">
           <div class="space-y-1">
             <label class="text-sm text-muted">选择用户</label>
-            <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
-              <option>请选择用户</option>
-              <option>用户 A</option>
-              <option>用户 B</option>
-            </select>
+            <div class="relative">
+              <div class="multi-select" data-multi="discount-users">
+                <span class="chip" data-value="all">全部用户 <button type="button" data-remove="all">×</button></span>
+                <input type="text" placeholder="选择用户" />
+              </div>
+              <div class="absolute mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-soft hidden z-10" data-options="discount-users">
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="用户 A">用户 A</button>
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="用户 B">用户 B</button>
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="用户 C">用户 C</button>
+              </div>
+            </div>
           </div>
           <div class="space-y-1">
             <label class="text-sm text-muted">选择模型</label>
-            <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
-              <option>请选择模型</option>
-              <option>Model A (Diffusion)</option>
-              <option>Model B (Language)</option>
-              <option>Model C (Image Rec.)</option>
+            <div class="relative">
+              <div class="multi-select" data-multi="discount-models">
+                <span class="chip" data-value="all">全部模型 <button type="button" data-remove="all">×</button></span>
+                <input type="text" placeholder="选择模型" />
+              </div>
+              <div class="absolute mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-soft hidden z-10" data-options="discount-models">
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="Model A (Diffusion)">Model A (Diffusion)</button>
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="Model B (Language)">Model B (Language)</button>
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="Model C (Image Rec.)">Model C (Image Rec.)</button>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">折扣类型</label>
+            <select id="discount-type" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+              <option>固定折扣</option>
+              <option>阶梯折扣</option>
+              <option>固定返还</option>
             </select>
           </div>
-          <div class="space-y-1 md:col-span-2">
+          <div id="discount-value" class="space-y-1">
+            <label class="text-sm text-muted">折扣值</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="例如：85% 或 返还 200 积分" />
+          </div>
+          <div id="discount-tiered" class="space-y-1 hidden">
+            <label class="text-sm text-muted">积分消耗区间</label>
+            <div id="discount-tier-list" class="space-y-3">
+              <div class="border border-slate-200 rounded-lg p-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                  <div>
+                    <label class="text-xs text-muted">起始积分</label>
+                    <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="0" />
+                  </div>
+                  <div>
+                    <label class="text-xs text-muted">结束积分</label>
+                    <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="5000" />
+                  </div>
+                  <div>
+                    <label class="text-xs text-muted">折扣率(%)</label>
+                    <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="85" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <button id="discount-add-tier" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-muted hover:text-brand-600">添加区间</button>
+            </div>
+          </div>
+          <div class="space-y-1">
             <label class="text-sm text-muted">时间区间</label>
             <div class="flex flex-wrap items-center gap-3">
               <div class="relative flex-1 min-w-[200px]">
@@ -434,13 +493,6 @@
                 长期有效
               </label>
               <span class="text-xs text-muted">长期有效会忽略时间区间</span>
-            </div>
-          </div>
-          <div class="space-y-1">
-            <label class="text-sm text-muted">折扣率</label>
-            <div class="relative">
-              <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm pr-8" placeholder="例如 85" />
-              <span class="absolute right-3 top-2.5 text-sm text-muted">%</span>
             </div>
           </div>
           <div class="space-y-1">
@@ -659,6 +711,113 @@
       discountEnd.disabled = disabled;
       discountStart.classList.toggle('bg-slate-100', disabled);
       discountEnd.classList.toggle('bg-slate-100', disabled);
+    });
+
+    const setupMulti = (key, label) => {
+      const wrap = document.querySelector(`[data-multi="${key}"]`);
+      const menu = document.querySelector(`[data-options="${key}"]`);
+      if (!wrap || !menu) return;
+      const input = wrap.querySelector('input');
+
+      const close = () => menu.classList.add('hidden');
+      const open = () => menu.classList.remove('hidden');
+
+      wrap.addEventListener('click', () => {
+        open();
+        input.focus();
+      });
+
+      menu.addEventListener('click', (event) => {
+        const btn = event.target.closest('button[data-value]');
+        if (!btn) return;
+        const value = btn.dataset.value;
+        const exists = Array.from(wrap.querySelectorAll('.chip')).some((chip) => chip.dataset.value === value);
+        if (exists) return;
+        wrap.querySelectorAll('.chip[data-value="all"]').forEach((chip) => chip.remove());
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.dataset.value = value;
+        chip.innerHTML = `${value} <button type="button" class="remove-chip">×</button>`;
+        wrap.insertBefore(chip, input);
+        input.value = '';
+      });
+
+      wrap.addEventListener('click', (event) => {
+        const btn = event.target.closest('.remove-chip, [data-remove="all"]');
+        if (!btn) return;
+        const chip = btn.closest('.chip');
+        if (chip) chip.remove();
+        if (!wrap.querySelector('.chip')) {
+          const allChip = document.createElement('span');
+          allChip.className = 'chip';
+          allChip.dataset.value = 'all';
+          allChip.innerHTML = `全部${label} <button type="button" data-remove="all">×</button>`;
+          wrap.insertBefore(allChip, input);
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!wrap.contains(event.target) && !menu.contains(event.target)) {
+          close();
+        }
+      });
+    };
+
+    setupMulti('discount-users', '用户');
+    setupMulti('discount-models', '模型');
+
+    const discountType = document.getElementById('discount-type');
+    const discountValue = document.getElementById('discount-value');
+    const discountTiered = document.getElementById('discount-tiered');
+    const discountTierList = document.getElementById('discount-tier-list');
+    const discountAddTier = document.getElementById('discount-add-tier');
+
+    const updateDiscountType = () => {
+      const isTiered = discountType.value === '阶梯折扣';
+      discountValue.classList.toggle('hidden', isTiered);
+      discountTiered.classList.toggle('hidden', !isTiered);
+    };
+
+    discountType.addEventListener('change', updateDiscountType);
+    updateDiscountType();
+
+    const createDiscountTier = () => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'border border-slate-200 rounded-lg p-3';
+      wrapper.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div>
+            <label class="text-xs text-muted">起始积分</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="5001" />
+          </div>
+          <div>
+            <label class="text-xs text-muted">结束积分</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="20000" />
+          </div>
+          <div>
+            <label class="text-xs text-muted">折扣率(%)</label>
+            <div class="flex gap-2">
+              <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="80" />
+              <button class="px-3 py-2 border border-slate-200 rounded-lg text-xs text-muted hover:text-brand-600 remove-tier">删除</button>
+            </div>
+          </div>
+        </div>
+      `;
+      return wrapper;
+    };
+
+    discountAddTier.addEventListener('click', () => {
+      discountTierList.appendChild(createDiscountTier());
+    });
+
+    discountTierList.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target && target.classList.contains('remove-tier')) {
+        const card = target.closest('div.border');
+        if (card && discountTierList.children.length > 1) {
+          card.remove();
+        }
+      }
     });
   </script>
 </body>

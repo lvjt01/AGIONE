@@ -131,9 +131,9 @@
             <h2 class="text-2xl font-semibold section-title">消耗明细</h2>
             <div class="flex flex-wrap items-center gap-3 text-sm">
               <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1">
-                <span class="text-muted">维度</span>
-                <button id="btn-user-dimension" class="px-2 py-0.5 rounded-full bg-brand-500 text-white">用户维度</button>
-                <button id="btn-time-dimension" class="px-2 py-0.5 rounded-full text-muted hover:bg-slate-100">时间维度</button>
+                <span class="text-muted">视图</span>
+                <button id="btn-user-dimension" class="px-2 py-0.5 rounded-full bg-brand-500 text-white">用户模型汇总</button>
+                <button id="btn-time-dimension" class="px-2 py-0.5 rounded-full text-muted hover:bg-slate-100">使用明细</button>
               </div>
               <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1">
                 <span class="text-muted">内容</span>
@@ -262,7 +262,12 @@
               <tbody>
                 <tr class="table-row border-b border-slate-100">
                   <td class="py-3 px-3">2026-01</td>
-                  <td class="py-3 px-3 font-medium">用户 A</td>
+                  <td class="py-3 px-3">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-1 rounded-full bg-brand-50 text-brand-600 text-xs">总监</span>
+                      <span class="font-medium">用户 A</span>
+                    </div>
+                  </td>
                   <td class="py-3 px-3">主账号</td>
                   <td class="py-3 px-3">120 ms</td>
                   <td class="py-3 px-3">Model A (Diffusion)</td>
@@ -278,7 +283,12 @@
                 </tr>
                 <tr class="table-row border-b border-slate-100">
                   <td class="py-3 px-3">2026-01</td>
-                  <td class="py-3 px-3 font-medium">用户 B</td>
+                  <td class="py-3 px-3">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs">销售</span>
+                      <span class="font-medium">用户 B</span>
+                    </div>
+                  </td>
                   <td class="py-3 px-3">子账号</td>
                   <td class="py-3 px-3">500 ms</td>
                   <td class="py-3 px-3">Model B (Language)</td>
@@ -294,7 +304,12 @@
                 </tr>
                 <tr class="table-row">
                   <td class="py-3 px-3">2026-01</td>
-                  <td class="py-3 px-3 font-medium">用户 A</td>
+                  <td class="py-3 px-3">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-1 rounded-full bg-amber-50 text-amber-600 text-xs">店长</span>
+                      <span class="font-medium">用户 A</span>
+                    </div>
+                  </td>
                   <td class="py-3 px-3">主账号</td>
                   <td class="py-3 px-3">300 ms</td>
                   <td class="py-3 px-3">Model C (Image Rec.)</td>
@@ -333,7 +348,12 @@
               <tbody>
                 <tr class="table-row border-b border-slate-100">
                   <td class="py-3 px-3">2026-01-05 10:12:04</td>
-                  <td class="py-3 px-3 font-medium">用户 A</td>
+                  <td class="py-3 px-3">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-1 rounded-full bg-brand-50 text-brand-600 text-xs">总监</span>
+                      <span class="font-medium">用户 A</span>
+                    </div>
+                  </td>
                   <td class="py-3 px-3">主账号</td>
                   <td class="py-3 px-3">120 ms</td>
                   <td class="py-3 px-3">Model A (Diffusion)</td>
@@ -346,7 +366,12 @@
                 </tr>
                 <tr class="table-row border-b border-slate-100">
                   <td class="py-3 px-3">2026-01-10 09:30:44</td>
-                  <td class="py-3 px-3 font-medium">用户 B</td>
+                  <td class="py-3 px-3">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs">销售</span>
+                      <span class="font-medium">用户 B</span>
+                    </div>
+                  </td>
                   <td class="py-3 px-3">子账号</td>
                   <td class="py-3 px-3">500 ms</td>
                   <td class="py-3 px-3">Model B (Language)</td>
@@ -359,7 +384,12 @@
                 </tr>
                 <tr class="table-row">
                   <td class="py-3 px-3">2026-01-21 19:20:12</td>
-                  <td class="py-3 px-3 font-medium">用户 A</td>
+                  <td class="py-3 px-3">
+                    <div class="flex items-center gap-2">
+                      <span class="px-2 py-1 rounded-full bg-amber-50 text-amber-600 text-xs">店长</span>
+                      <span class="font-medium">用户 A</span>
+                    </div>
+                  </td>
                   <td class="py-3 px-3">主账号</td>
                   <td class="py-3 px-3">300 ms</td>
                   <td class="py-3 px-3">Model C (Image Rec.)</td>
