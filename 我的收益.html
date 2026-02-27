@@ -1,0 +1,665 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的收益 - 模创空间控制台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EEF4FF',
+              100: '#D9E4FF',
+              200: '#B7CCFF',
+              300: '#86AAFF',
+              400: '#4F7DFF',
+              500: '#2F5EFF',
+              600: '#1F4AE0',
+              700: '#1737A8',
+              800: '#102674',
+              900: '#0B1B4D'
+            },
+            ink: '#1B1F2A',
+            muted: '#5F6B7A'
+          },
+          fontFamily: {
+            sans: ['Manrope', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 14px 40px rgba(14, 30, 80, 0.08)'
+          }
+        }
+      }
+    };
+  </script>
+  <style type="text/tailwindcss">
+    :root {
+      color-scheme: light;
+    }
+    @layer utilities {
+      .glass {
+        background: linear-gradient(130deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.7));
+        backdrop-filter: blur(18px);
+      }
+      .section-title {
+        letter-spacing: 0.02em;
+      }
+      .table-row:hover {
+        background: #F5F7FB;
+      }
+      .sidebar-collapsed {
+        width: 80px;
+      }
+      .sidebar-collapsed .nav-label,
+      .sidebar-collapsed .brand-text,
+      .sidebar-collapsed .nav-group {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-ink font-sans">
+  <div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col transition-all duration-300">
+      <div class="p-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center font-bold">MC</div>
+          <div class="brand-text">
+            <p class="text-sm text-muted">模创空间控制台</p>
+            <p class="text-base font-semibold">我的收益</p>
+          </div>
+        </div>
+        <button id="toggle-sidebar" class="w-8 h-8 rounded-lg border border-slate-200 text-muted hover:text-brand-600">
+          <i class="fa fa-bars"></i>
+        </button>
+      </div>
+      <nav class="flex-1 px-4 space-y-2">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand-50 text-brand-600 font-semibold" href="javascript:void(0)">
+          <i class="fa fa-list-alt"></i>
+          <span class="nav-label">我的收益</span>
+        </a>
+      </nav>
+      <div class="p-4">
+        <div class="glass rounded-xl p-4 border border-slate-100">
+          <p class="text-xs text-muted">在线服务状态</p>
+          <div class="flex items-center justify-between mt-2">
+            <span class="text-sm font-semibold">运行中</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Topbar -->
+      <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <h1 class="text-lg font-semibold">模创空间控制台</h1>
+          <div class="relative">
+            <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-muted hover:text-brand-600">
+              App 切换 <i class="fa fa-angle-down ml-1"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 text-sm">
+            <button class="px-2 py-1 rounded-md bg-brand-50 text-brand-600">中</button>
+            <button class="px-2 py-1 rounded-md text-muted hover:bg-slate-100">En</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-slate-200"></div>
+            <button class="text-sm text-muted hover:text-brand-600">
+              用户菜单 <i class="fa fa-angle-down ml-1"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 bg-gradient-to-br from-slate-50 via-white to-brand-50/40 px-6 py-6">
+        <!-- Title + Actions -->
+        <section class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div class="space-y-2">
+            <h2 class="text-2xl font-semibold section-title">我的收益</h2>
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+              <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1">
+                <span class="text-muted">维度</span>
+                <button id="btn-user-dimension" class="px-2 py-0.5 rounded-full bg-brand-500 text-white">用户维度</button>
+                <button id="btn-time-dimension" class="px-2 py-0.5 rounded-full text-muted hover:bg-slate-100">时间维度</button>
+              </div>
+              <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1">
+                <span class="text-muted">内容</span>
+                <button class="px-2 py-0.5 rounded-full text-muted hover:bg-slate-100">应用</button>
+                <button class="px-2 py-0.5 rounded-full bg-brand-500 text-white">模型</button>
+              </div>
+            </div>
+          </div>
+          <button class="px-4 py-2 bg-brand-500 text-white rounded-lg shadow-soft hover:bg-brand-600">
+            <i class="fa fa-download mr-2"></i>导出
+          </button>
+        </section>
+
+        <!-- Filters -->
+        <section class="bg-white rounded-2xl shadow-soft p-5 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold">筛选条件</h3>
+            <button id="toggle-filter" class="text-sm text-muted hover:text-brand-600">
+              收起筛选 <i class="fa fa-angle-up ml-1"></i>
+            </button>
+          </div>
+          <div id="filter-body" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
+            <div class="space-y-1">
+              <label class="text-sm text-muted">账期选择</label>
+              <div class="relative">
+                <input id="billing-period" type="month" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200" value="2026-01" />
+                <i class="fa fa-calendar absolute right-3 top-3 text-muted"></i>
+              </div>
+            </div>
+            <div class="space-y-1 md:col-span-2 xl:col-span-2">
+              <label class="text-sm text-muted">使用时间范围</label>
+              <div class="flex gap-2">
+                <div class="relative flex-1 min-w-0">
+                  <input id="start-time" type="datetime-local" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+                  <i class="fa fa-clock-o absolute right-3 top-3 text-muted"></i>
+                </div>
+                <div class="relative flex-1 min-w-0">
+                  <input id="end-time" type="datetime-local" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+                  <i class="fa fa-clock-o absolute right-3 top-3 text-muted"></i>
+                </div>
+              </div>
+              <p class="text-xs text-muted">仅可选择账期内时间</p>
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-muted">用户名称</label>
+              <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="请输入用户名称" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-muted">模型名称</label>
+              <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="请输入模型名称" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-muted">模型类型</label>
+              <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                <option>请选择模型类型</option>
+                <option>语言模型</option>
+                <option>文生图</option>
+                <option>视频生成</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-3 mt-4">
+            <button class="px-4 py-2 rounded-lg bg-brand-500 text-white">查询</button>
+            <button class="px-4 py-2 rounded-lg bg-slate-100 text-muted">重置</button>
+            <button class="text-sm text-muted hover:text-brand-600">收起筛选</button>
+          </div>
+        </section>
+
+        <!-- Settlement cards -->
+        <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white rounded-xl p-4 shadow-soft">
+            <p class="text-sm text-muted">账期</p>
+            <p id="billing-summary" class="text-lg font-semibold mt-2">2026-01</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-soft">
+            <p class="text-sm text-muted">应结算积分</p>
+            <p class="text-2xl font-semibold mt-2 text-brand-600">12,860</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-soft">
+            <p class="text-sm text-muted">已结算积分</p>
+            <p class="text-2xl font-semibold mt-2 text-emerald-600">9,520</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-soft">
+            <p class="text-sm text-muted">待结算积分</p>
+            <p class="text-2xl font-semibold mt-2 text-orange-500">3,340</p>
+          </div>
+        </section>
+
+        <!-- Table -->
+        <section class="bg-white rounded-2xl shadow-soft p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold">我的收益明细表格</h3>
+            <div class="flex items-center gap-3">
+              <button id="open-discount" class="px-3 py-1.5 rounded-lg bg-brand-500 text-white text-sm">设置折扣</button>
+              <div class="flex items-center gap-2 text-muted">
+              <button class="w-8 h-8 rounded-lg border border-slate-200 hover:text-brand-600"><i class="fa fa-sliders"></i></button>
+              <button class="w-8 h-8 rounded-lg border border-slate-200 hover:text-brand-600"><i class="fa fa-refresh"></i></button>
+            </div>
+            </div>
+          </div>
+
+          <!-- User dimension table -->
+          <div id="table-user" class="overflow-x-auto">
+            <table class="w-full min-w-[1040px] text-sm">
+              <thead>
+                <tr class="text-left text-muted bg-slate-50">
+                  <th class="py-3 px-3">账期</th>
+                  <th class="py-3 px-3">用户名称</th>
+                  <th class="py-3 px-3">耗时</th>
+                  <th class="py-3 px-3">模型名称</th>
+                  <th class="py-3 px-3">模型类型</th>
+                  <th class="py-3 px-3">使用情况</th>
+                  <th class="py-3 px-3">抵扣情况</th>
+                  <th class="py-3 px-3">实际使用情况</th>
+                  <th class="py-3 px-3">计费规则</th>
+                  <th class="py-3 px-3">积分</th>
+                  <th class="py-3 px-3">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="table-row border-b border-slate-100">
+                  <td class="py-3 px-3">2026-01</td>
+                  <td class="py-3 px-3 font-medium">用户 A</td>
+                  <td class="py-3 px-3">120 ms</td>
+                  <td class="py-3 px-3">Model A (Diffusion)</td>
+                  <td class="py-3 px-3">语言模型</td>
+                  <td class="py-3 px-3">输入: 1000Token, 输出: 500Token</td>
+                  <td class="py-3 px-3">输入: 100Token, 输出: 20Token</td>
+                  <td class="py-3 px-3">输入: 900Token, 输出: 480Token</td>
+                  <td class="py-3 px-3">输入: 100Token=1 积分...</td>
+                  <td class="py-3 px-3 font-semibold text-brand-600">100</td>
+                  <td class="py-3 px-3">
+                    <button class="text-brand-600 hover:underline detail-btn" data-user="用户 A">详情</button>
+                  </td>
+                </tr>
+                <tr class="table-row border-b border-slate-100">
+                  <td class="py-3 px-3">2026-01</td>
+                  <td class="py-3 px-3 font-medium">用户 B</td>
+                  <td class="py-3 px-3">500 ms</td>
+                  <td class="py-3 px-3">Model B (Language)</td>
+                  <td class="py-3 px-3">文生图</td>
+                  <td class="py-3 px-3">生成图片数量: 10 张</td>
+                  <td class="py-3 px-3">生成图片数量: 2 张</td>
+                  <td class="py-3 px-3">生成图片数量: 8 张</td>
+                  <td class="py-3 px-3">1 张 = 1 积分</td>
+                  <td class="py-3 px-3 font-semibold text-brand-600">500</td>
+                  <td class="py-3 px-3">
+                    <button class="text-brand-600 hover:underline detail-btn" data-user="用户 B">详情</button>
+                  </td>
+                </tr>
+                <tr class="table-row">
+                  <td class="py-3 px-3">2026-01</td>
+                  <td class="py-3 px-3 font-medium">用户 A</td>
+                  <td class="py-3 px-3">300 ms</td>
+                  <td class="py-3 px-3">Model C (Image Rec.)</td>
+                  <td class="py-3 px-3">视频生成</td>
+                  <td class="py-3 px-3">标准 ×5S</td>
+                  <td class="py-3 px-3">标准 ×1S</td>
+                  <td class="py-3 px-3">标准 ×4S</td>
+                  <td class="py-3 px-3">标准 ×5S=10 积分</td>
+                  <td class="py-3 px-3 font-semibold text-brand-600">30</td>
+                  <td class="py-3 px-3">
+                    <button class="text-brand-600 hover:underline detail-btn" data-user="用户 A">详情</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Time dimension table -->
+          <div id="table-time" class="overflow-x-auto hidden">
+            <table class="w-full min-w-[1020px] text-sm">
+              <thead>
+                <tr class="text-left text-muted bg-slate-50">
+                  <th class="py-3 px-3">使用时间</th>
+                  <th class="py-3 px-3">用户名称</th>
+                  <th class="py-3 px-3">耗时</th>
+                  <th class="py-3 px-3">模型名称</th>
+                  <th class="py-3 px-3">模型类型</th>
+                  <th class="py-3 px-3">使用情况</th>
+                  <th class="py-3 px-3">抵扣情况</th>
+                  <th class="py-3 px-3">实际使用情况</th>
+                  <th class="py-3 px-3">计费规则</th>
+                  <th class="py-3 px-3">积分</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="table-row border-b border-slate-100">
+                  <td class="py-3 px-3">2026-01-05 10:12:04</td>
+                  <td class="py-3 px-3 font-medium">用户 A</td>
+                  <td class="py-3 px-3">120 ms</td>
+                  <td class="py-3 px-3">Model A (Diffusion)</td>
+                  <td class="py-3 px-3">语言模型</td>
+                  <td class="py-3 px-3">输入: 1000Token, 输出: 500Token</td>
+                  <td class="py-3 px-3">输入: 100Token, 输出: 20Token</td>
+                  <td class="py-3 px-3">输入: 900Token, 输出: 480Token</td>
+                  <td class="py-3 px-3">输入: 100Token=1 积分...</td>
+                  <td class="py-3 px-3 font-semibold text-brand-600">100</td>
+                </tr>
+                <tr class="table-row border-b border-slate-100">
+                  <td class="py-3 px-3">2026-01-10 09:30:44</td>
+                  <td class="py-3 px-3 font-medium">用户 B</td>
+                  <td class="py-3 px-3">500 ms</td>
+                  <td class="py-3 px-3">Model B (Language)</td>
+                  <td class="py-3 px-3">文生图</td>
+                  <td class="py-3 px-3">生成图片数量: 10 张</td>
+                  <td class="py-3 px-3">生成图片数量: 2 张</td>
+                  <td class="py-3 px-3">生成图片数量: 8 张</td>
+                  <td class="py-3 px-3">1 张 = 1 积分</td>
+                  <td class="py-3 px-3 font-semibold text-brand-600">500</td>
+                </tr>
+                <tr class="table-row">
+                  <td class="py-3 px-3">2026-01-21 19:20:12</td>
+                  <td class="py-3 px-3 font-medium">用户 A</td>
+                  <td class="py-3 px-3">300 ms</td>
+                  <td class="py-3 px-3">Model C (Image Rec.)</td>
+                  <td class="py-3 px-3">视频生成</td>
+                  <td class="py-3 px-3">标准 ×5S</td>
+                  <td class="py-3 px-3">标准 ×1S</td>
+                  <td class="py-3 px-3">标准 ×4S</td>
+                  <td class="py-3 px-3">标准 ×5S=10 积分</td>
+                  <td class="py-3 px-3 font-semibold text-brand-600">30</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex flex-wrap items-center justify-between gap-3 mt-4 text-sm text-muted">
+            <span>Total 3</span>
+            <div class="flex items-center gap-2">
+              <span>每页条数</span>
+              <select class="border border-slate-200 rounded-lg px-2 py-1">
+                <option selected>10 / page</option>
+                <option>20 / page</option>
+                <option>50 / page</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="px-2 py-1 border border-slate-200 rounded-lg">上一页</button>
+              <button class="px-3 py-1 border border-brand-500 text-brand-600 rounded-lg">1</button>
+              <button class="px-2 py-1 border border-slate-200 rounded-lg">下一页</button>
+              <div class="flex items-center gap-2">
+                <span>跳转至</span>
+                <input class="w-14 border border-slate-200 rounded-lg px-2 py-1" placeholder="1" />
+                <span>页</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Discount modal -->
+  <div id="discount-modal" class="fixed inset-0 hidden items-center justify-center px-4">
+    <div id="discount-backdrop" class="absolute inset-0 bg-black/40"></div>
+    <div class="relative bg-white rounded-2xl shadow-soft w-full max-w-3xl z-10">
+      <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-muted">设置折扣</p>
+          <p class="text-xl font-semibold">为特定用户设置折扣</p>
+        </div>
+        <button id="discount-close" class="text-muted hover:text-brand-600"><i class="fa fa-times"></i></button>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-sm text-muted">选择用户</label>
+            <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+              <option>请选择用户</option>
+              <option>用户 A</option>
+              <option>用户 B</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">选择模型</label>
+            <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+              <option>请选择模型</option>
+              <option>Model A (Diffusion)</option>
+              <option>Model B (Language)</option>
+              <option>Model C (Image Rec.)</option>
+            </select>
+          </div>
+          <div class="space-y-1 md:col-span-2">
+            <label class="text-sm text-muted">时间区间</label>
+            <div class="flex flex-wrap items-center gap-3">
+              <div class="relative flex-1 min-w-[200px]">
+                <input id="discount-start" type="datetime-local" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+                <i class="fa fa-clock-o absolute right-3 top-3 text-muted"></i>
+              </div>
+              <div class="relative flex-1 min-w-[200px]">
+                <input id="discount-end" type="datetime-local" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+                <i class="fa fa-clock-o absolute right-3 top-3 text-muted"></i>
+              </div>
+              <label class="flex items-center gap-2 text-sm text-muted">
+                <input id="discount-forever" type="checkbox" class="accent-brand-500" />
+                长期有效
+              </label>
+              <span class="text-xs text-muted">长期有效会忽略时间区间</span>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">折扣率</label>
+            <div class="relative">
+              <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm pr-8" placeholder="例如 85" />
+              <span class="absolute right-3 top-2.5 text-sm text-muted">%</span>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">实际补贴积分</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="自动计算或手动输入" />
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
+        <button id="discount-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-muted">取消</button>
+        <button class="px-4 py-2 rounded-lg bg-brand-500 text-white">保存设置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail drawer -->
+  <div id="detail-drawer" class="fixed inset-0 hidden">
+    <div id="drawer-backdrop" class="absolute inset-0 bg-black/40"></div>
+    <div class="absolute right-0 top-0 h-full w-full max-w-3xl bg-white shadow-soft flex flex-col">
+      <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-muted">用户维度详情</p>
+          <p class="text-xl font-semibold" id="drawer-user-title">-</p>
+        </div>
+        <button id="drawer-close" class="text-muted hover:text-brand-600"><i class="fa fa-times"></i></button>
+      </div>
+      <div class="p-6 flex-1 overflow-auto">
+        <div class="flex flex-wrap items-center gap-3 mb-4 text-base">
+          <div class="px-4 py-2 rounded-full bg-brand-50 text-brand-600">账期：2026-01</div>
+          <div class="px-4 py-2 rounded-full bg-slate-100 text-muted">调用条数：1,248</div>
+          <div class="px-4 py-2 rounded-full bg-slate-100 text-muted">积分合计：12,860</div>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-4 mb-5">
+          <p class="text-sm text-muted mb-2">时间区间</p>
+          <div class="flex flex-wrap gap-3">
+            <div class="relative flex-1 min-w-[220px]">
+              <input type="datetime-local" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value="2026-01-01T00:00" />
+              <i class="fa fa-clock-o absolute right-3 top-3 text-muted"></i>
+            </div>
+            <div class="relative flex-1 min-w-[220px]">
+              <input type="datetime-local" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value="2026-01-31T23:59" />
+              <i class="fa fa-clock-o absolute right-3 top-3 text-muted"></i>
+            </div>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[760px] text-base">
+            <thead>
+              <tr class="text-left text-muted bg-slate-50">
+                <th class="py-3 px-4">使用时间</th>
+                <th class="py-3 px-4">耗时</th>
+                <th class="py-3 px-4">模型名称</th>
+                <th class="py-3 px-4">模型类型</th>
+                <th class="py-3 px-4">使用情况</th>
+                <th class="py-3 px-4">抵扣情况</th>
+                <th class="py-3 px-4">实际使用情况</th>
+                <th class="py-3 px-4">计费规则</th>
+                <th class="py-3 px-4">积分</th>
+              </tr>
+            </thead>
+            <tbody id="drawer-table-body">
+              <tr class="border-b border-slate-100">
+                <td class="py-3 px-4">2026-01-05 10:12:04</td>
+                <td class="py-3 px-4">120 ms</td>
+                <td class="py-3 px-4">Model A (Diffusion)</td>
+                <td class="py-3 px-4">语言模型</td>
+                <td class="py-3 px-4">输入: 1000Token, 输出: 500Token</td>
+                <td class="py-3 px-4">输入: 100Token, 输出: 20Token</td>
+                <td class="py-3 px-4">输入: 900Token, 输出: 480Token</td>
+                <td class="py-3 px-4">输入: 100Token=1 积分</td>
+                <td class="py-3 px-4 text-brand-600 font-semibold">100</td>
+              </tr>
+              <tr class="border-b border-slate-100">
+                <td class="py-3 px-4">2026-01-10 09:30:44</td>
+                <td class="py-3 px-4">500 ms</td>
+                <td class="py-3 px-4">Model B (Language)</td>
+                <td class="py-3 px-4">文生图</td>
+                <td class="py-3 px-4">生成图片数量: 10 张</td>
+                <td class="py-3 px-4">生成图片数量: 2 张</td>
+                <td class="py-3 px-4">生成图片数量: 8 张</td>
+                <td class="py-3 px-4">1 张 = 1 积分</td>
+                <td class="py-3 px-4 text-brand-600 font-semibold">500</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4">2026-01-21 19:20:12</td>
+                <td class="py-3 px-4">300 ms</td>
+                <td class="py-3 px-4">Model C (Image Rec.)</td>
+                <td class="py-3 px-4">视频生成</td>
+                <td class="py-3 px-4">标准 ×5S</td>
+                <td class="py-3 px-4">标准 ×1S</td>
+                <td class="py-3 px-4">标准 ×4S</td>
+                <td class="py-3 px-4">标准 ×5S=10 积分</td>
+                <td class="py-3 px-4 text-brand-600 font-semibold">30</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between text-base text-muted">
+        <span>当前显示 3 条 / 可滚动查看更多</span>
+        <div class="flex items-center gap-2">
+          <button class="px-4 py-2 border border-slate-200 rounded-lg">上一页</button>
+          <button class="px-4 py-2 border border-brand-500 text-brand-600 rounded-lg">1</button>
+          <button class="px-4 py-2 border border-slate-200 rounded-lg">下一页</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('toggle-sidebar').addEventListener('click', () => {
+      sidebar.classList.toggle('sidebar-collapsed');
+    });
+
+    const toggleFilter = document.getElementById('toggle-filter');
+    const filterBody = document.getElementById('filter-body');
+    toggleFilter.addEventListener('click', () => {
+      const hidden = filterBody.classList.toggle('hidden');
+      toggleFilter.innerHTML = hidden ? '展开筛选 <i class="fa fa-angle-down ml-1"></i>' : '收起筛选 <i class="fa fa-angle-up ml-1"></i>';
+    });
+
+    const userBtn = document.getElementById('btn-user-dimension');
+    const timeBtn = document.getElementById('btn-time-dimension');
+    const userTable = document.getElementById('table-user');
+    const timeTable = document.getElementById('table-time');
+
+    const setActiveDimension = (dimension) => {
+      const isUser = dimension === 'user';
+      userBtn.className = isUser ? 'px-2 py-0.5 rounded-full bg-brand-500 text-white' : 'px-2 py-0.5 rounded-full text-muted hover:bg-slate-100';
+      timeBtn.className = isUser ? 'px-2 py-0.5 rounded-full text-muted hover:bg-slate-100' : 'px-2 py-0.5 rounded-full bg-brand-500 text-white';
+      userTable.classList.toggle('hidden', !isUser);
+      timeTable.classList.toggle('hidden', isUser);
+    };
+
+    userBtn.addEventListener('click', () => setActiveDimension('user'));
+    timeBtn.addEventListener('click', () => setActiveDimension('time'));
+
+    const drawer = document.getElementById('detail-drawer');
+    const drawerBackdrop = document.getElementById('drawer-backdrop');
+    const drawerClose = document.getElementById('drawer-close');
+    const drawerTitle = document.getElementById('drawer-user-title');
+
+    const closeDrawer = () => drawer.classList.add('hidden');
+
+    document.querySelectorAll('.detail-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        drawerTitle.textContent = `${btn.dataset.user} - 模型使用详情`;
+        drawer.classList.remove('hidden');
+      });
+    });
+
+    drawerBackdrop.addEventListener('click', closeDrawer);
+    drawerClose.addEventListener('click', closeDrawer);
+
+    const billingInput = document.getElementById('billing-period');
+    const billingSummary = document.getElementById('billing-summary');
+    const startTime = document.getElementById('start-time');
+    const endTime = document.getElementById('end-time');
+
+    const updateTimeRange = () => {
+      const value = billingInput.value || '2026-01';
+      billingSummary.textContent = value;
+      const [year, month] = value.split('-').map(Number);
+      const start = new Date(year, month - 1, 1, 0, 0, 0);
+      const end = new Date(year, month, 0, 23, 59, 59);
+      const toLocal = (date) => {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      };
+      const minVal = toLocal(start);
+      const maxVal = toLocal(end);
+      startTime.min = minVal;
+      startTime.max = maxVal;
+      endTime.min = minVal;
+      endTime.max = maxVal;
+      if (!startTime.value || startTime.value < minVal || startTime.value > maxVal) {
+        startTime.value = minVal;
+      }
+      if (!endTime.value || endTime.value < minVal || endTime.value > maxVal) {
+        endTime.value = maxVal;
+      }
+    };
+
+    billingInput.addEventListener('change', updateTimeRange);
+    updateTimeRange();
+
+    const discountModal = document.getElementById('discount-modal');
+    const discountBackdrop = document.getElementById('discount-backdrop');
+    const discountClose = document.getElementById('discount-close');
+    const discountCancel = document.getElementById('discount-cancel');
+    const discountStart = document.getElementById('discount-start');
+    const discountEnd = document.getElementById('discount-end');
+    const discountForever = document.getElementById('discount-forever');
+    const discountOpenBtn = document.getElementById('open-discount');
+
+    const openDiscount = () => {
+      discountModal.classList.remove('hidden');
+      discountModal.classList.add('flex');
+    };
+    const closeDiscount = () => {
+      discountModal.classList.add('hidden');
+      discountModal.classList.remove('flex');
+    };
+
+    if (discountOpenBtn) {
+      discountOpenBtn.addEventListener('click', openDiscount);
+    }
+    discountBackdrop.addEventListener('click', closeDiscount);
+    discountClose.addEventListener('click', closeDiscount);
+    discountCancel.addEventListener('click', closeDiscount);
+
+    discountForever.addEventListener('change', () => {
+      const disabled = discountForever.checked;
+      discountStart.disabled = disabled;
+      discountEnd.disabled = disabled;
+      discountStart.classList.toggle('bg-slate-100', disabled);
+      discountEnd.classList.toggle('bg-slate-100', disabled);
+    });
+  </script>
+</body>
+</html>

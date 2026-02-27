@@ -1,0 +1,566 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>折扣策略 - 模创空间控制台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EEF4FF',
+              100: '#D9E4FF',
+              200: '#B7CCFF',
+              300: '#86AAFF',
+              400: '#4F7DFF',
+              500: '#2F5EFF',
+              600: '#1F4AE0',
+              700: '#1737A8',
+              800: '#102674',
+              900: '#0B1B4D'
+            },
+            ink: '#1B1F2A',
+            muted: '#5F6B7A'
+          },
+          fontFamily: {
+            sans: ['Manrope', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 14px 40px rgba(14, 30, 80, 0.08)'
+          }
+        }
+      }
+    };
+  </script>
+  <style type="text/tailwindcss">
+    :root {
+      color-scheme: light;
+    }
+    @layer utilities {
+      .glass {
+        background: linear-gradient(130deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.7));
+        backdrop-filter: blur(18px);
+      }
+      .section-title {
+        letter-spacing: 0.02em;
+      }
+      .table-row:hover {
+        background: #F5F7FB;
+      }
+      .sidebar-collapsed {
+        width: 80px;
+      }
+      .sidebar-collapsed .nav-label,
+      .sidebar-collapsed .brand-text,
+      .sidebar-collapsed .nav-group {
+        display: none;
+      }
+      .chip {
+        @apply inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-sm text-ink;
+      }
+      .chip button {
+        @apply text-muted hover:text-brand-600;
+      }
+      .multi-select {
+        @apply w-full border border-slate-200 rounded-lg px-2 py-2 text-sm flex flex-wrap gap-2 items-center min-h-[44px];
+      }
+      .multi-select input {
+        @apply outline-none border-0 flex-1 min-w-[120px];
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-ink font-sans">
+  <div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col transition-all duration-300">
+      <div class="p-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center font-bold">MC</div>
+          <div class="brand-text">
+            <p class="text-sm text-muted">模创空间控制台</p>
+            <p class="text-base font-semibold">折扣策略</p>
+          </div>
+        </div>
+        <button id="toggle-sidebar" class="w-8 h-8 rounded-lg border border-slate-200 text-muted hover:text-brand-600">
+          <i class="fa fa-bars"></i>
+        </button>
+      </div>
+      <nav class="flex-1 px-4 space-y-2">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-brand-50 text-brand-600 font-semibold" href="javascript:void(0)">
+          <i class="fa fa-tag"></i>
+          <span class="nav-label">折扣策略</span>
+        </a>
+      </nav>
+      <div class="p-4">
+        <div class="glass rounded-xl p-4 border border-slate-100">
+          <p class="text-xs text-muted">策略生效状态</p>
+          <div class="flex items-center justify-between mt-2">
+            <span class="text-sm font-semibold">运行中</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Topbar -->
+      <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <h1 class="text-lg font-semibold">模创空间控制台</h1>
+          <div class="relative">
+            <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-muted hover:text-brand-600">
+              App 切换 <i class="fa fa-angle-down ml-1"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 text-sm">
+            <button class="px-2 py-1 rounded-md bg-brand-50 text-brand-600">中</button>
+            <button class="px-2 py-1 rounded-md text-muted hover:bg-slate-100">En</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-slate-200"></div>
+            <button class="text-sm text-muted hover:text-brand-600">
+              用户菜单 <i class="fa fa-angle-down ml-1"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="flex-1 bg-gradient-to-br from-slate-50 via-white to-brand-50/40 px-6 py-6">
+        <!-- Title + Actions -->
+        <section class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div class="space-y-2">
+            <h2 class="text-2xl font-semibold section-title">折扣策略</h2>
+            <p class="text-sm text-muted">提前给特定用户设置折扣，出账时自动返还积分</p>
+          </div>
+          <button id="open-policy-modal" class="px-4 py-2 bg-brand-500 text-white rounded-lg shadow-soft hover:bg-brand-600">
+            <i class="fa fa-plus mr-2"></i>新建策略
+          </button>
+        </section>
+
+        <!-- Filters -->
+        <section class="bg-white rounded-2xl shadow-soft p-5 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold">筛选条件</h3>
+            <button id="toggle-filter" class="text-sm text-muted hover:text-brand-600">
+              收起筛选 <i class="fa fa-angle-up ml-1"></i>
+            </button>
+          </div>
+          <div id="filter-body" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div class="space-y-1">
+              <label class="text-sm text-muted">策略名称</label>
+              <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="请输入策略名称" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-muted">选择用户</label>
+              <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                <option selected>全部用户</option>
+                <option>用户 A</option>
+                <option>用户 B</option>
+                <option>用户 C</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-muted">选择模型</label>
+              <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                <option selected>全部模型</option>
+                <option>Model A (Diffusion)</option>
+                <option>Model B (Language)</option>
+                <option>Model C (Image Rec.)</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-muted">生效状态</label>
+              <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                <option>全部</option>
+                <option>生效中</option>
+                <option>未生效</option>
+                <option>已过期</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm text-muted">折扣类型</label>
+              <select class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                <option>固定折扣</option>
+                <option>阶梯折扣</option>
+                <option>固定返还</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-3 mt-4">
+            <button class="px-4 py-2 rounded-lg bg-brand-500 text-white">查询</button>
+            <button class="px-4 py-2 rounded-lg bg-slate-100 text-muted">重置</button>
+          </div>
+        </section>
+
+        <!-- Table -->
+        <section class="bg-white rounded-2xl shadow-soft p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold">策略列表</h3>
+            <div class="flex items-center gap-2 text-muted">
+              <button class="w-8 h-8 rounded-lg border border-slate-200 hover:text-brand-600"><i class="fa fa-sliders"></i></button>
+              <button class="w-8 h-8 rounded-lg border border-slate-200 hover:text-brand-600"><i class="fa fa-refresh"></i></button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[1100px] text-sm">
+              <thead>
+                <tr class="text-left text-muted bg-slate-50">
+                  <th class="py-3 px-3">策略名称</th>
+                  <th class="py-3 px-3">用户范围</th>
+                  <th class="py-3 px-3">模型范围</th>
+                  <th class="py-3 px-3">折扣类型</th>
+                  <th class="py-3 px-3">折扣值</th>
+                  <th class="py-3 px-3">有效期</th>
+                  <th class="py-3 px-3">状态</th>
+                  <th class="py-3 px-3">创建人</th>
+                  <th class="py-3 px-3">更新时间</th>
+                  <th class="py-3 px-3">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="table-row border-b border-slate-100">
+                  <td class="py-3 px-3 font-medium">核心客户折扣</td>
+                  <td class="py-3 px-3">用户 A / 用户 B</td>
+                  <td class="py-3 px-3">Model A / Model B</td>
+                  <td class="py-3 px-3">固定折扣</td>
+                  <td class="py-3 px-3 text-brand-600">85%</td>
+                  <td class="py-3 px-3">2026-01-01 ~ 2026-12-31</td>
+                  <td class="py-3 px-3"><span class="px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs">生效中</span></td>
+                  <td class="py-3 px-3">管理员</td>
+                  <td class="py-3 px-3">2026-02-10 10:12</td>
+                  <td class="py-3 px-3">
+                    <button class="text-brand-600 hover:underline">编辑</button>
+                    <span class="mx-2 text-slate-300">|</span>
+                    <button class="text-muted hover:text-brand-600">停用</button>
+                  </td>
+                </tr>
+                <tr class="table-row border-b border-slate-100">
+                  <td class="py-3 px-3 font-medium">长期合作折扣</td>
+                  <td class="py-3 px-3">用户分组：战略客户</td>
+                  <td class="py-3 px-3">全部模型</td>
+                  <td class="py-3 px-3">固定返还</td>
+                  <td class="py-3 px-3 text-brand-600">返还 200 积分</td>
+                  <td class="py-3 px-3">长期有效</td>
+                  <td class="py-3 px-3"><span class="px-2 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs">生效中</span></td>
+                  <td class="py-3 px-3">运营 01</td>
+                  <td class="py-3 px-3">2026-02-15 09:30</td>
+                  <td class="py-3 px-3">
+                    <button class="text-brand-600 hover:underline">编辑</button>
+                    <span class="mx-2 text-slate-300">|</span>
+                    <button class="text-muted hover:text-brand-600">停用</button>
+                  </td>
+                </tr>
+                <tr class="table-row">
+                  <td class="py-3 px-3 font-medium">试用期折扣</td>
+                  <td class="py-3 px-3">指定用户</td>
+                  <td class="py-3 px-3">模型类型：文生图</td>
+                  <td class="py-3 px-3">固定折扣</td>
+                  <td class="py-3 px-3 text-brand-600">70%</td>
+                  <td class="py-3 px-3">2026-02-01 ~ 2026-03-01</td>
+                  <td class="py-3 px-3"><span class="px-2 py-1 rounded-full bg-amber-50 text-amber-600 text-xs">未生效</span></td>
+                  <td class="py-3 px-3">运营 02</td>
+                  <td class="py-3 px-3">2026-02-20 14:15</td>
+                  <td class="py-3 px-3">
+                    <button class="text-brand-600 hover:underline">编辑</button>
+                    <span class="mx-2 text-slate-300">|</span>
+                    <button class="text-muted hover:text-brand-600">启用</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-3 mt-4 text-sm text-muted">
+            <span>Total 3</span>
+            <div class="flex items-center gap-2">
+              <span>每页条数</span>
+              <select class="border border-slate-200 rounded-lg px-2 py-1">
+                <option selected>10 / page</option>
+                <option>20 / page</option>
+                <option>50 / page</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="px-2 py-1 border border-slate-200 rounded-lg">上一页</button>
+              <button class="px-3 py-1 border border-brand-500 text-brand-600 rounded-lg">1</button>
+              <button class="px-2 py-1 border border-slate-200 rounded-lg">下一页</button>
+              <div class="flex items-center gap-2">
+                <span>跳转至</span>
+                <input class="w-14 border border-slate-200 rounded-lg px-2 py-1" placeholder="1" />
+                <span>页</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Policy modal -->
+  <div id="policy-modal" class="fixed inset-0 hidden items-center justify-center px-4">
+    <div id="policy-backdrop" class="absolute inset-0 bg-black/40"></div>
+    <div class="relative bg-white rounded-2xl shadow-soft w-full max-w-3xl z-10 flex flex-col max-h-[85vh]">
+      <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-muted">新建/编辑策略</p>
+          <p class="text-xl font-semibold">折扣策略配置</p>
+        </div>
+        <button id="policy-close" class="text-muted hover:text-brand-600"><i class="fa fa-times"></i></button>
+      </div>
+      <div class="p-6 overflow-auto">
+        <div class="grid grid-cols-1 gap-4">
+          <div class="space-y-1">
+            <label class="text-sm text-muted">策略名称</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="例如：核心客户折扣" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">选择用户</label>
+            <div class="relative">
+              <div class="multi-select" data-multi="users">
+                <span class="chip">全部用户 <button type="button" data-remove="all">×</button></span>
+                <input type="text" placeholder="选择用户" />
+              </div>
+              <div class="absolute mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-soft hidden z-10" data-options="users">
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="用户 A">用户 A</button>
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="用户 B">用户 B</button>
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="用户 C">用户 C</button>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">选择模型</label>
+            <div class="relative">
+              <div class="multi-select" data-multi="models">
+                <span class="chip">全部模型 <button type="button" data-remove="all">×</button></span>
+                <input type="text" placeholder="选择模型" />
+              </div>
+              <div class="absolute mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-soft hidden z-10" data-options="models">
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="Model A (Diffusion)">Model A (Diffusion)</button>
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="Model B (Language)">Model B (Language)</button>
+                <button type="button" class="w-full text-left px-3 py-2 hover:bg-slate-50" data-value="Model C (Image Rec.)">Model C (Image Rec.)</button>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">折扣类型</label>
+            <select id="policy-discount-type" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+              <option>固定折扣</option>
+              <option>阶梯折扣</option>
+              <option>固定返还</option>
+            </select>
+          </div>
+          <div id="policy-discount-value" class="space-y-1">
+            <label class="text-sm text-muted">折扣值</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="例如：85% 或 返还 200 积分" />
+          </div>
+          <div id="policy-tiered" class="space-y-1 hidden">
+            <label class="text-sm text-muted">积分消耗区间</label>
+            <div id="tier-list" class="space-y-3">
+              <div class="border border-slate-200 rounded-lg p-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                  <div>
+                    <label class="text-xs text-muted">起始积分</label>
+                    <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="0" />
+                  </div>
+                  <div>
+                    <label class="text-xs text-muted">结束积分</label>
+                    <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="5000" />
+                  </div>
+                  <div>
+                    <label class="text-xs text-muted">折扣率(%)</label>
+                    <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="85" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <button id="add-tier" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-muted hover:text-brand-600">添加区间</button>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">有效期</label>
+            <div class="flex flex-wrap items-center gap-3">
+              <div class="relative flex-1 min-w-[220px]">
+                <input type="datetime-local" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+                <i class="fa fa-clock-o absolute right-3 top-3 text-muted"></i>
+              </div>
+              <div class="relative flex-1 min-w-[220px]">
+                <input type="datetime-local" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+                <i class="fa fa-clock-o absolute right-3 top-3 text-muted"></i>
+              </div>
+              <label class="flex items-center gap-2 text-sm text-muted">
+                <input type="checkbox" class="accent-brand-500" />
+                长期有效
+              </label>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">返还上限（可选）</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="设置每账期最高返还积分" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm text-muted">策略说明</label>
+            <textarea class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" rows="3" placeholder="备注说明或适用场景"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
+        <button id="policy-cancel" class="px-4 py-2 rounded-lg bg-slate-100 text-muted">取消</button>
+        <button class="px-4 py-2 rounded-lg bg-brand-500 text-white">保存策略</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('toggle-sidebar').addEventListener('click', () => {
+      sidebar.classList.toggle('sidebar-collapsed');
+    });
+
+    const toggleFilter = document.getElementById('toggle-filter');
+    const filterBody = document.getElementById('filter-body');
+    toggleFilter.addEventListener('click', () => {
+      const hidden = filterBody.classList.toggle('hidden');
+      toggleFilter.innerHTML = hidden ? '展开筛选 <i class="fa fa-angle-down ml-1"></i>' : '收起筛选 <i class="fa fa-angle-up ml-1"></i>';
+    });
+
+    const policyModal = document.getElementById('policy-modal');
+    const policyBackdrop = document.getElementById('policy-backdrop');
+    const policyClose = document.getElementById('policy-close');
+    const policyCancel = document.getElementById('policy-cancel');
+    const policyOpen = document.getElementById('open-policy-modal');
+
+    const openPolicy = () => {
+      policyModal.classList.remove('hidden');
+      policyModal.classList.add('flex');
+    };
+    const closePolicy = () => {
+      policyModal.classList.add('hidden');
+      policyModal.classList.remove('flex');
+    };
+
+    policyOpen.addEventListener('click', openPolicy);
+    policyBackdrop.addEventListener('click', closePolicy);
+    policyClose.addEventListener('click', closePolicy);
+    policyCancel.addEventListener('click', closePolicy);
+
+    const discountType = document.getElementById('policy-discount-type');
+    const discountValue = document.getElementById('policy-discount-value');
+    const tiered = document.getElementById('policy-tiered');
+
+    const updateDiscountType = () => {
+      const isTiered = discountType.value === '阶梯折扣';
+      discountValue.classList.toggle('hidden', isTiered);
+      tiered.classList.toggle('hidden', !isTiered);
+    };
+
+    discountType.addEventListener('change', updateDiscountType);
+    updateDiscountType();
+
+    const tierList = document.getElementById('tier-list');
+    const addTier = document.getElementById('add-tier');
+
+    const createTier = () => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'border border-slate-200 rounded-lg p-3';
+      wrapper.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div>
+            <label class="text-xs text-muted">起始积分</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="5001" />
+          </div>
+          <div>
+            <label class="text-xs text-muted">结束积分</label>
+            <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="20000" />
+          </div>
+          <div>
+            <label class="text-xs text-muted">折扣率(%)</label>
+            <div class="flex gap-2">
+              <input class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" placeholder="80" />
+              <button class="px-3 py-2 border border-slate-200 rounded-lg text-xs text-muted hover:text-brand-600 remove-tier">删除</button>
+            </div>
+          </div>
+        </div>
+      `;
+      return wrapper;
+    };
+
+    addTier.addEventListener('click', () => {
+      tierList.appendChild(createTier());
+    });
+
+    tierList.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target && target.classList.contains('remove-tier')) {
+        const card = target.closest('div.border');
+        if (card && tierList.children.length > 1) {
+          card.remove();
+        }
+      }
+    });
+
+    const setupMulti = (key) => {
+      const wrap = document.querySelector(`[data-multi="${key}"]`);
+      const menu = document.querySelector(`[data-options="${key}"]`);
+      if (!wrap || !menu) return;
+      const input = wrap.querySelector('input');
+
+      const close = () => menu.classList.add('hidden');
+      const open = () => menu.classList.remove('hidden');
+
+      wrap.addEventListener('click', () => {
+        open();
+        input.focus();
+      });
+
+      menu.addEventListener('click', (event) => {
+        const btn = event.target.closest('button[data-value]');
+        if (!btn) return;
+        const value = btn.dataset.value;
+        const exists = Array.from(wrap.querySelectorAll('.chip')).some((chip) => chip.dataset.value === value);
+        if (exists) return;
+        wrap.querySelectorAll('.chip[data-value="all"]').forEach((chip) => chip.remove());
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.dataset.value = value;
+        chip.innerHTML = `${value} <button type="button" class="remove-chip">×</button>`;
+        wrap.insertBefore(chip, input);
+        input.value = '';
+      });
+
+      wrap.addEventListener('click', (event) => {
+        const btn = event.target.closest('.remove-chip, [data-remove="all"]');
+        if (!btn) return;
+        const chip = btn.closest('.chip');
+        if (chip) chip.remove();
+        if (!wrap.querySelector('.chip')) {
+          const allChip = document.createElement('span');
+          allChip.className = 'chip';
+          allChip.dataset.value = 'all';
+          allChip.innerHTML = '全部' + (key === 'users' ? '用户' : '模型') + ' <button type="button" data-remove="all">×</button>';
+          wrap.insertBefore(allChip, input);
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!wrap.contains(event.target) && !menu.contains(event.target)) {
+          close();
+        }
+      });
+    };
+
+    setupMulti('users');
+    setupMulti('models');
+  </script>
+</body>
+</html>
