@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调用日志列表 - AI模型调用分析平台</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #4F46E5;
+            --primary-light: #818CF8;
+            --secondary-color: #06B6D4;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --purple-color: #8B5CF6;
+            --pink-color: #EC4899;
+            --orange-color: #F97316;
+            --bg-color: #F8FAFC;
+            --sidebar-bg: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --border-color: #E2E8F0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 侧边栏导航 */
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar-bg);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #94A3B8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .menu-section {
+            padding: 16px 0;
+        }
+
+        .menu-title {
+            padding: 8px 24px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748B;
+            font-weight: 600;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: #94A3B8;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .menu-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.3), transparent);
+            color: white;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            display: flex;
+            flex-direction: column;
+            transition: margin-right 0.3s ease;
+        }
+
+        .main-content.drawer-open {
+            margin-right: 580px;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: white;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: var(--bg-color);
+            border-radius: 25px;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary-color), var(--purple-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 24px;
+            flex: 1;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* 筛选区域 */
+        .filter-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .filter-input {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .filter-select {
+            padding: 10px 36px 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M2 4l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center;
+            appearance: none;
+            cursor: pointer;
+            min-width: 160px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* 表格区域 */
+        .table-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-title i {
+            color: var(--primary-color);
+        }
+
+        .table-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .table-info strong {
+            color: var(--primary-color);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-color);
+            white-space: nowrap;
+        }
+
+        .data-table th:first-child { padding-left: 24px; }
+        .data-table th:last-child { padding-right: 24px; }
+
+        .data-table td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .data-table td:first-child { padding-left: 24px; }
+        .data-table td:last-child { padding-right: 24px; }
+
+        .data-table tbody tr {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(79, 70, 229, 0.03);
+        }
+
+        .data-table tbody tr.active {
+            background: rgba(79, 70, 229, 0.06);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .time-cell {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+        }
+
+        .model-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .model-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+        }
+
+        .model-icon.gpt { background: linear-gradient(135deg, #10B981, #34D399); }
+        .model-icon.claude { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+        .model-icon.gemini { background: linear-gradient(135deg, #4F46E5, #818CF8); }
+        .model-icon.llama { background: linear-gradient(135deg, #F59E0B, #FBBF24); }
+        .model-icon.qwen { background: linear-gradient(135deg, #EC4899, #F472B6); }
+
+        .model-info-name { font-weight: 600; }
+        .model-info-version { font-size: 12px; color: var(--text-secondary); }
+
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .type-badge.text {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary-color);
+        }
+
+        .type-badge.multimodal {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--purple-color);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-badge i { font-size: 10px; }
+        .status-badge.success { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .status-badge.failed { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+
+        .token-cell { display: flex; flex-direction: column; gap: 4px; }
+        .token-row { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .token-label { color: var(--text-secondary); font-size: 11px; width: 50px; }
+        .token-value { font-weight: 600; font-family: 'SF Mono', Monaco, monospace; }
+        .token-value.input { color: var(--secondary-color); }
+        .token-value.output { color: var(--success-color); }
+
+        .duration-cell { font-family: 'SF Mono', Monaco, monospace; font-size: 13px; }
+        .duration-cell.fast { color: var(--success-color); }
+        .duration-cell.normal { color: var(--warning-color); }
+        .duration-cell.slow { color: var(--danger-color); }
+
+        .error-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .error-type-badge.supplier { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .error-type-badge.agione-limit { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .error-type-badge.agione-balance { background: rgba(249, 115, 22, 0.1); color: var(--orange-color); border: 1px solid rgba(249, 115, 22, 0.2); }
+        .error-type-badge.agione-system { background: rgba(139, 92, 246, 0.1); color: var(--purple-color); border: 1px solid rgba(139, 92, 246, 0.2); }
+        .error-type-badge.client { background: rgba(100, 116, 139, 0.1); color: var(--text-secondary); border: 1px solid rgba(100, 116, 139, 0.2); }
+
+        .badge-prefix { font-weight: 600; opacity: 0.8; }
+        .no-error { color: var(--text-secondary); font-size: 13px; }
+
+        .action-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--primary-color);
+            background: rgba(79, 70, 229, 0.1);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* 分页 */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .pagination-info { font-size: 14px; color: var(--text-secondary); }
+
+        .pagination-controls { display: flex; align-items: center; gap: 8px; }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .page-btn:hover:not(.disabled) { border-color: var(--primary-color); color: var(--primary-color); }
+        .page-btn.active { background: var(--primary-color); border-color: var(--primary-color); color: white; }
+        .page-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .page-size-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            margin-left: 16px;
+        }
+
+        /* ==================== 详情侧边栏 ==================== */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+
+        .detail-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 580px;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+            z-index: 300;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-drawer.active { transform: translateX(0); }
+
+        .drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.03), white);
+        }
+
+        .drawer-title { display: flex; align-items: center; gap: 14px; }
+
+        .drawer-title-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: white;
+        }
+
+        .drawer-title-text h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .drawer-title-text span { font-size: 13px; color: var(--text-secondary); }
+
+        .drawer-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background: var(--bg-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .drawer-close:hover { background: var(--danger-color); color: white; }
+
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* 详情区块 */
+        .detail-section { margin-bottom: 28px; }
+        .detail-section:last-child { margin-bottom: 0; }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label i { color: var(--primary-color); }
+
+        /* 信息卡片网格 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .info-card {
+            padding: 16px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .info-card:hover { background: #F1F5F9; }
+        .info-card.full { grid-column: span 2; }
+
+        .info-card-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-card-value { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+        .info-card-value.mono { font-family: 'SF Mono', Monaco, monospace; font-size: 14px; }
+        .info-card-value.success { color: var(--success-color); }
+        .info-card-value.danger { color: var(--danger-color); }
+        .info-card-value.primary { color: var(--primary-color); }
+
+        /* 状态大标签 */
+        .status-large {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .status-large.success { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .status-large.failed { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+
+        /* 消耗统计 */
+        .consumption-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .consumption-card {
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: white;
+        }
+
+        .consumption-card.input { border-left: 4px solid var(--secondary-color); }
+        .consumption-card.output { border-left: 4px solid var(--success-color); }
+
+        .consumption-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .consumption-main {
+            font-size: 26px;
+            font-weight: 700;
+            font-family: 'SF Mono', Monaco, monospace;
+            margin-bottom: 6px;
+        }
+
+        .consumption-main.input { color: var(--secondary-color); }
+        .consumption-main.output { color: var(--success-color); }
+
+        .consumption-sub { font-size: 13px; color: var(--text-secondary); }
+
+        /* 错误信息卡片样式 */
+        .error-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .error-card {
+            padding: 16px 20px;
+            background: var(--bg-color);
+            border-radius: 12px;
+        }
+
+        .error-card.full {
+            grid-column: span 2;
+        }
+
+        .error-card-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        /* 错误代码标签 - 橙色样式 */
+        .error-code-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border: 1px solid #F59E0B;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: #B45309;
+        }
+
+        /* 错误类型标签 - 黄色带警告图标 */
+        .error-type-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #FEF9C3, #FEF08A);
+            border: 1px solid #FACC15;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #A16207;
+        }
+
+        .error-type-tag i {
+            color: #CA8A04;
+        }
+
+        /* 错误消息 */
+        .error-message-text {
+            font-size: 15px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* JSON响应区域 */
+        .json-section {
+            margin-top: 24px;
+        }
+
+        .json-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .json-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .json-label i { color: var(--primary-color); }
+
+        .json-actions { display: flex; gap: 8px; }
+
+        .json-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .json-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .json-btn.copied { background: var(--success-color); border-color: var(--success-color); color: white; }
+
+        .json-container {
+            background: #1E293B;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .json-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.25);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .json-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .json-dot.red { background: #EF4444; }
+        .json-dot.yellow { background: #F59E0B; }
+        .json-dot.green { background: #10B981; }
+
+        .json-filename {
+            margin-left: 12px;
+            font-size: 12px;
+            color: #64748B;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .json-content {
+            padding: 20px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            overflow-x: auto;
+            white-space: pre;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .json-content::-webkit-scrollbar { width: 8px; height: 8px; }
+        .json-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .json-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+        /* JSON语法高亮 */
+        .json-key { color: #7DD3FC; }
+        .json-string { color: #86EFAC; }
+        .json-number { color: #FCD34D; }
+        .json-boolean { color: #F472B6; }
+        .json-null { color: #94A3B8; }
+        .json-bracket { color: #E2E8F0; }
+        .json-colon { color: #94A3B8; }
+        .json-comma { color: #94A3B8; }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .table-section { animation: fadeIn 0.4s ease-out; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏导航 -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-robot"></i></div>
+            <span class="logo-text">AI Platform</span>
+        </div>
+        <div class="menu-section">
+            <div class="menu-title">发现</div>
+            <a class="menu-item" href="#"><i class="fas fa-cube"></i><span>模型广场</span></a>
+            <a class="menu-item" href="#"><i class="fas fa-th-large"></i><span>应用广场</span></a>
+        </div>
+        <div class="menu-section">
+            <div class="menu-title">我的调用</div>
+            <a class="menu-item" href="#"><i class="fas fa-chart-line"></i><span>概览</span></a>
+            <a class="menu-item active" href="#"><i class="fas fa-history"></i><span>调用日志</span></a>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content" id="mainContent">
+        <header class="header">
+            <nav class="header-nav">
+                <button class="nav-btn"><i class="fas fa-users"></i> 用户及AI服务</button>
+                <button class="nav-btn">AI基础设施 <i class="fas fa-chevron-down"></i></button>
+            </nav>
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-building"></i></div>
+                <span>企业名称</span>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i><span>我的调用</span>
+                    <i class="fas fa-chevron-right"></i><span>调用日志</span>
+                </div>
+                <h1 class="page-title">调用日志</h1>
+            </div>
+
+            <!-- 筛选区域 -->
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">调用时间</label>
+                        <input type="text" class="filter-input" value="2024-10-01 00:00:00">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">&nbsp;</label>
+                        <input type="text" class="filter-input" value="2024-10-31 23:59:59">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">模型名称</label>
+                        <input type="text" class="filter-input" placeholder="请输入模型名称">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">调用状态</label>
+                        <select class="filter-select">
+                            <option value="">全部状态</option>
+                            <option value="success">成功</option>
+                            <option value="failed">失败</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">失败类型</label>
+                        <select class="filter-select">
+                            <option value="">全部类型</option>
+                            <option value="supplier">[供应商] 接口异常</option>
+                            <option value="agione-limit">[AGIONE] 限流</option>
+                            <option value="agione-balance">[AGIONE] 余额不足</option>
+                            <option value="agione-system">[AGIONE] 系统异常</option>
+                            <option value="client">[Client] 主动中断</option>
+                        </select>
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="btn btn-secondary"><i class="fas fa-redo"></i> 重置</button>
+                        <button class="btn btn-primary"><i class="fas fa-search"></i> 查询</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 表格区域 -->
+            <div class="table-section">
+                <div class="table-header">
+                    <div class="table-title"><i class="fas fa-list-alt"></i> 调用记录列表</div>
+                    <div class="table-info">共 <strong>12,456</strong> 条记录</div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>调用时间</th>
+                                <th>模型名称</th>
+                                <th>模型类型</th>
+                                <th>调用状态</th>
+                                <th>消耗 (Token)</th>
+                                <th>耗时</th>
+                                <th>失败类型</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="showDetail(0)">
+                                <td class="time-cell">2024-10-23 14:32:18</td>
+                                <td>
+                                    <div class="model-name">
+                                        <div class="model-icon gpt"><i class="fas fa-brain"></i></div>
+                                        <div>
+                                            <div class="model-info-name">GPT-4o</div>
+                                            <div class="model-info-version">gpt-4o-2024-08-06</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="type-badge text"><i class="fas fa-font"></i> 文本</span></td>
+                                <td><span class="status-badge success"><i class="fas fa-circle"></i> 成功</span></td>
+                                <td>
+                                    <div class="token-cell">
+                                        <div class="token-row"><span class="token-label">Input:</span><span class="token-value input">1,256</span></div>
+                                        <div class="token-row"><span class="token-label">Output:</span><span class="token-value output">2,048</span></div>
+                                    </div>
+                                </td>
+                                <td><span class="duration-cell fast">1.23s</span></td>
+                                <td><span class="no-error">-</span></td>
+                                <td><button class="action-btn" onclick="event.stopPropagation(); showDetail(0)"><i class="fas fa-eye"></i> 详情</button></td>
+                            </tr>
+
+                            <tr onclick="showDetail(1)">
+                                <td class="time-cell">2024-10-23 14:28:45</td>
+                                <td>
+                                    <div class="model-name">
+                                        <div class="model-icon claude"><i class="fas fa-atom"></i></div>
+                                        <div>
+                                            <div class="model-info-name">Claude-3.5-Sonnet</div>
+                                            <div class="model-info-version">claude-3-5-sonnet-20241022</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="type-badge text"><i class="fas fa-font"></i> 文本</span></td>
+                                <td><span class="status-badge failed"><i class="fas fa-circle"></i> 失败</span></td>
+                                <td>
+                                    <div class="token-cell">
+                                        <div class="token-row"><span class="token-label">Input:</span><span class="token-value input">856</span></div>
+                                        <div class="token-row"><span class="token-label">Output:</span><span class="token-value output">0</span></div>
+                                    </div>
+                                </td>
+                                <td><span class="duration-cell slow">0.05s</span></td>
+                                <td><span class="error-type-badge agione-limit"><span class="badge-prefix">[AGIONE]</span> 限流</span></td>
+                                <td><button class="action-btn" onclick="event.stopPropagation(); showDetail(1)"><i class="fas fa-eye"></i> 详情</button></td>
+                            </tr>
+
+                            <tr onclick="showDetail(2)">
+                                <td class="time-cell">2024-10-23 14:25:33</td>
+                                <td>
+                                    <div class="model-name">
+                                        <div class="model-icon gemini"><i class="fas fa-gem"></i></div>
+                                        <div>
+                                            <div class="model-info-name">Gemini-Pro</div>
+                                            <div class="model-info-version">gemini-1.5-pro</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="type-badge multimodal"><i class="fas fa-layer-group"></i> 多模态</span></td>
+                                <td><span class="status-badge failed"><i class="fas fa-circle"></i> 失败</span></td>
+                                <td>
+                                    <div class="token-cell">
+                                        <div class="token-row"><span class="token-label">Input:</span><span class="token-value input">2,048</span></div>
+                                        <div class="token-row"><span class="token-label">Output:</span><span class="token-value output">0</span></div>
+                                    </div>
+                                </td>
+                                <td><span class="duration-cell slow">30.12s</span></td>
+                                <td><span class="error-type-badge supplier"><span class="badge-prefix">[供应商]</span> 接口异常</span></td>
+                                <td><button class="action-btn" onclick="event.stopPropagation(); showDetail(2)"><i class="fas fa-eye"></i> 详情</button></td>
+                            </tr>
+
+                            <tr onclick="showDetail(3)">
+                                <td class="time-cell">2024-10-23 14:22:11</td>
+                                <td>
+                                    <div class="model-name">
+                                        <div class="model-icon llama"><i class="fas fa-fire"></i></div>
+                                        <div>
+                                            <div class="model-info-name">Llama-3.1-70B</div>
+                                            <div class="model-info-version">meta-llama/llama-3.1-70b</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="type-badge text"><i class="fas fa-font"></i> 文本</span></td>
+                                <td><span class="status-badge failed"><i class="fas fa-circle"></i> 失败</span></td>
+                                <td>
+                                    <div class="token-cell">
+                                        <div class="token-row"><span class="token-label">Input:</span><span class="token-value input">0</span></div>
+                                        <div class="token-row"><span class="token-label">Output:</span><span class="token-value output">0</span></div>
+                                    </div>
+                                </td>
+                                <td><span class="duration-cell">0.02s</span></td>
+                                <td><span class="error-type-badge agione-balance"><span class="badge-prefix">[AGIONE]</span> 余额不足</span></td>
+                                <td><button class="action-btn" onclick="event.stopPropagation(); showDetail(3)"><i class="fas fa-eye"></i> 详情</button></td>
+                            </tr>
+
+                            <tr onclick="showDetail(4)">
+                                <td class="time-cell">2024-10-23 14:15:22</td>
+                                <td>
+                                    <div class="model-name">
+                                        <div class="model-icon gpt"><i class="fas fa-brain"></i></div>
+                                        <div>
+                                            <div class="model-info-name">GPT-4-Turbo</div>
+                                            <div class="model-info-version">gpt-4-turbo-2024-04-09</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="type-badge text"><i class="fas fa-font"></i> 文本</span></td>
+                                <td><span class="status-badge failed"><i class="fas fa-circle"></i> 失败</span></td>
+                                <td>
+                                    <div class="token-cell">
+                                        <div class="token-row"><span class="token-label">Input:</span><span class="token-value input">3,456</span></div>
+                                        <div class="token-row"><span class="token-label">Output:</span><span class="token-value output">1,024</span></div>
+                                    </div>
+                                </td>
+                                <td><span class="duration-cell normal">8.34s</span></td>
+                                <td><span class="error-type-badge client"><span class="badge-prefix">[Client]</span> 主动中断</span></td>
+                                <td><button class="action-btn" onclick="event.stopPropagation(); showDetail(4)"><i class="fas fa-eye"></i> 详情</button></td>
+                            </tr>
+
+                            <tr onclick="showDetail(5)">
+                                <td class="time-cell">2024-10-23 14:12:08</td>
+                                <td>
+                                    <div class="model-name">
+                                        <div class="model-icon claude"><i class="fas fa-atom"></i></div>
+                                        <div>
+                                            <div class="model-info-name">Claude-3-Opus</div>
+                                            <div class="model-info-version">claude-3-opus-20240229</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="type-badge text"><i class="fas fa-font"></i> 文本</span></td>
+                                <td><span class="status-badge success"><i class="fas fa-circle"></i> 成功</span></td>
+                                <td>
+                                    <div class="token-cell">
+                                        <div class="token-row"><span class="token-label">Input:</span><span class="token-value input">4,512</span></div>
+                                        <div class="token-row"><span class="token-label">Output:</span><span class="token-value output">3,876</span></div>
+                                    </div>
+                                </td>
+                                <td><span class="duration-cell fast">2.45s</span></td>
+                                <td><span class="no-error">-</span></td>
+                                <td><button class="action-btn" onclick="event.stopPropagation(); showDetail(5)"><i class="fas fa-eye"></i> 详情</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <div class="pagination-info">显示 1-10 条，共 12,456 条记录</div>
+                    <div class="pagination-controls">
+                        <button class="page-btn disabled"><i class="fas fa-chevron-left"></i></button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">4</button>
+                        <button class="page-btn">5</button>
+                        <span style="color: var(--text-secondary);">...</span>
+                        <button class="page-btn">1246</button>
+                        <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+                        <select class="page-size-select">
+                            <option>10条/页</option>
+                            <option>20条/页</option>
+                            <option>50条/页</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 遮罩层 -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+    <!-- 详情侧边栏 -->
+    <div class="detail-drawer" id="detailDrawer">
+        <div class="drawer-header">
+            <div class="drawer-title">
+                <div class="drawer-title-icon" id="drawerIcon"><i class="fas fa-brain"></i></div>
+                <div class="drawer-title-text">
+                    <h3 id="drawerModelName">GPT-4o</h3>
+                    <span>调用详情</span>
+                </div>
+            </div>
+            <button class="drawer-close" onclick="closeDrawer()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="drawer-body">
+            <!-- 基本信息 -->
+            <div class="detail-section">
+                <div class="section-label"><i class="fas fa-info-circle"></i> 基本信息</div>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-card-label"><i class="fas fa-clock"></i> 调用时间</div>
+                        <div class="info-card-value mono" id="drawerTime">2024-10-23 14:32:18</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-label"><i class="fas fa-cube"></i> 模型名称</div>
+                        <div class="info-card-value" id="drawerModelNameFull">GPT-4o</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-label"><i class="fas fa-tag"></i> 模型类型</div>
+                        <div class="info-card-value" id="drawerModelType">文本模型</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-label"><i class="fas fa-flag"></i> 调用状态</div>
+                        <div id="drawerStatus"></div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-label"><i class="fas fa-hourglass-half"></i> 耗时</div>
+                        <div class="info-card-value mono" id="drawerDuration">1.23s</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-label"><i class="fas fa-bolt"></i> 首Token</div>
+                        <div class="info-card-value mono" id="drawerFirstToken">156ms</div>
+                    </div>
+                    <div class="info-card full" id="drawerFailTypeCard" style="display: none;">
+                        <div class="info-card-label"><i class="fas fa-exclamation-triangle"></i> 失败类型</div>
+                        <div id="drawerFailType"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 消耗情况 -->
+            <div class="detail-section">
+                <div class="section-label"><i class="fas fa-coins"></i> 消耗情况</div>
+                <div class="consumption-grid">
+                    <div class="consumption-card input">
+                        <div class="consumption-label"><i class="fas fa-arrow-circle-down"></i> 输入</div>
+                        <div class="consumption-main input" id="drawerInputToken">1,256</div>
+                        <div class="consumption-sub">Token</div>
+                    </div>
+                    <div class="consumption-card output">
+                        <div class="consumption-label"><i class="fas fa-arrow-circle-up"></i> 输出</div>
+                        <div class="consumption-main output" id="drawerOutputToken">2,048</div>
+                        <div class="consumption-sub">Token</div>
+                    </div>
+                </div>
+                <div class="info-grid" style="margin-top: 12px;">
+                    <div class="info-card">
+                        <div class="info-card-label"><i class="fas fa-text-width"></i> 输入字符数</div>
+                        <div class="info-card-value mono primary" id="drawerInputChars">5,024</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-label"><i class="fas fa-align-left"></i> 输出字符数</div>
+                        <div class="info-card-value mono primary" id="drawerOutputChars">8,192</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 错误信息（仅失败时显示） -->
+            <div class="detail-section" id="errorSection" style="display: none;">
+                <div class="section-label"><i class="fas fa-bug"></i> 错误信息</div>
+
+                <!-- 错误代码和错误类型卡片 -->
+                <div class="error-cards">
+                    <div class="error-card">
+                        <div class="error-card-label">错误代码</div>
+                        <div class="error-code-tag" id="drawerErrorCode">rpm_rate_limit_exceeded</div>
+                    </div>
+                    <div class="error-card">
+                        <div class="error-card-label">错误类型</div>
+                        <div class="error-type-tag" id="drawerErrorTypeTag">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="drawerErrorTypeText">rate_limit_exceeded</span>
+                        </div>
+                    </div>
+                    <div class="error-card full">
+                        <div class="error-card-label">错误消息</div>
+                        <div class="error-message-text" id="drawerErrorMessage">Rate limit reached for RPM</div>
+                    </div>
+                </div>
+
+                <!-- 完整响应JSON -->
+                <div class="json-section">
+                    <div class="json-header">
+                        <div class="json-label"><i class="fas fa-code"></i> 完整响应 (JSON)</div>
+                        <div class="json-actions">
+                            <button class="json-btn" id="copyJsonBtn" onclick="copyJson()">
+                                <i class="fas fa-copy"></i> 复制
+                            </button>
+                            <button class="json-btn" onclick="downloadJson()">
+                                <i class="fas fa-download"></i> 下载
+                            </button>
+                        </div>
+                    </div>
+                    <div class="json-container">
+                        <div class="json-toolbar">
+                            <div class="json-dot red"></div>
+                            <div class="json-dot yellow"></div>
+                            <div class="json-dot green"></div>
+                            <span class="json-filename">error_response.json</span>
+                        </div>
+                        <div class="json-content" id="jsonContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 详情数据
+        const detailData = [
+            {
+                modelName: "GPT-4o",
+                modelIcon: "gpt",
+                time: "2024-10-23 14:32:18",
+                modelType: "文本模型",
+                status: "success",
+                duration: "1.23s",
+                firstToken: "156ms",
+                inputToken: "1,256",
+                outputToken: "2,048",
+                inputChars: "5,024",
+                outputChars: "8,192",
+                error: null
+            },
+            {
+                modelName: "Claude-3.5-Sonnet",
+                modelIcon: "claude",
+                time: "2024-10-23 14:28:45",
+                modelType: "文本模型",
+                status: "failed",
+                duration: "0.05s",
+                firstToken: "-",
+                inputToken: "856",
+                outputToken: "0",
+                inputChars: "3,424",
+                outputChars: "0",
+                error: {
+                    type: "[AGIONE] 限流",
+                    typeClass: "agione-limit",
+                    code: "rpm_rate_limit_exceeded",
+                    errorType: "rate_limit_exceeded",
+                    message: "Rate limit reached for RPM",
+                    json: {
+                        "error": {
+                            "code": "rpm_rate_limit_exceeded",
+                            "message": "Rate limit reached for RPM",
+                            "type": "rate_limit_exceeded"
+                        },
+                        "id": "as-8wtbtm1598"
+                    }
+                }
+            },
+            {
+                modelName: "Gemini-Pro",
+                modelIcon: "gemini",
+                time: "2024-10-23 14:25:33",
+                modelType: "多模态模型",
+                status: "failed",
+                duration: "30.12s",
+                firstToken: "-",
+                inputToken: "2,048",
+                outputToken: "0",
+                inputChars: "8,192",
+                outputChars: "0",
+                error: {
+                    type: "[供应商] 接口异常",
+                    typeClass: "supplier",
+                    code: "503_service_unavailable",
+                    errorType: "server_error",
+                    message: "The model is currently overloaded with other requests. Please try again later.",
+                    json: {
+                        "error": {
+                            "code": "503_service_unavailable",
+                            "message": "The model is currently overloaded with other requests. Please try again later.",
+                            "type": "server_error",
+                            "param": null
+                        },
+                        "request_id": "req-gemini-003",
+                        "timestamp": "2024-10-23T14:25:33.456Z"
+                    }
+                }
+            },
+            {
+                modelName: "Llama-3.1-70B",
+                modelIcon: "llama",
+                time: "2024-10-23 14:22:11",
+                modelType: "文本模型",
+                status: "failed",
+                duration: "0.02s",
+                firstToken: "-",
+                inputToken: "0",
+                outputToken: "0",
+                inputChars: "0",
+                outputChars: "0",
+                error: {
+                    type: "[AGIONE] 余额不足",
+                    typeClass: "agione-balance",
+                    code: "insufficient_balance",
+                    errorType: "billing_error",
+                    message: "Your account balance is insufficient. Current balance: $0.05, Required: $0.12",
+                    json: {
+                        "error": {
+                            "code": "insufficient_balance",
+                            "message": "Your account balance is insufficient. Current balance: $0.05, Required: $0.12",
+                            "type": "billing_error"
+                        },
+                        "account_id": "acc_12345",
+                        "id": "err-balance-789"
+                    }
+                }
+            },
+            {
+                modelName: "GPT-4-Turbo",
+                modelIcon: "gpt",
+                time: "2024-10-23 14:15:22",
+                modelType: "文本模型",
+                status: "failed",
+                duration: "8.34s",
+                firstToken: "312ms",
+                inputToken: "3,456",
+                outputToken: "1,024",
+                inputChars: "13,824",
+                outputChars: "4,096",
+                error: {
+                    type: "[Client] 主动中断",
+                    typeClass: "client",
+                    code: "stream_cancelled",
+                    errorType: "client_error",
+                    message: "Stream was cancelled by the client before completion",
+                    json: {
+                        "error": {
+                            "code": "stream_cancelled",
+                            "message": "Stream was cancelled by the client before completion",
+                            "type": "client_error"
+                        },
+                        "partial_response": true,
+                        "tokens_generated": 1024,
+                        "id": "stream-cancel-321"
+                    }
+                }
+            },
+            {
+                modelName: "Claude-3-Opus",
+                modelIcon: "claude",
+                time: "2024-10-23 14:12:08",
+                modelType: "文本模型",
+                status: "success",
+                duration: "2.45s",
+                firstToken: "189ms",
+                inputToken: "4,512",
+                outputToken: "3,876",
+                inputChars: "18,048",
+                outputChars: "15,504",
+                error: null
+            }
+        ];
+
+        let currentIndex = 0;
+
+        function showDetail(index) {
+            currentIndex = index;
+            const d = detailData[index];
+
+            // 基本信息
+            document.getElementById('drawerModelName').textContent = d.modelName;
+            document.getElementById('drawerIcon').className = `drawer-title-icon model-icon ${d.modelIcon}`;
+            document.getElementById('drawerTime').textContent = d.time;
+            document.getElementById('drawerModelNameFull').textContent = d.modelName;
+            document.getElementById('drawerModelType').textContent = d.modelType;
+            document.getElementById('drawerDuration').textContent = d.duration;
+            document.getElementById('drawerFirstToken').textContent = d.firstToken;
+
+            // 状态
+            const statusHtml = d.status === 'success'
+                ? '<span class="status-large success"><i class="fas fa-check-circle"></i> 成功</span>'
+                : '<span class="status-large failed"><i class="fas fa-times-circle"></i> 失败</span>';
+            document.getElementById('drawerStatus').innerHTML = statusHtml;
+
+            // 失败类型
+            const failTypeCard = document.getElementById('drawerFailTypeCard');
+            if (d.error) {
+                failTypeCard.style.display = 'block';
+                document.getElementById('drawerFailType').innerHTML =
+                    `<span class="error-type-badge ${d.error.typeClass}">${d.error.type}</span>`;
+            } else {
+                failTypeCard.style.display = 'none';
+            }
+
+            // 消耗情况
+            document.getElementById('drawerInputToken').textContent = d.inputToken;
+            document.getElementById('drawerOutputToken').textContent = d.outputToken;
+            document.getElementById('drawerInputChars').textContent = d.inputChars;
+            document.getElementById('drawerOutputChars').textContent = d.outputChars;
+
+            // 错误信息
+            const errorSection = document.getElementById('errorSection');
+            if (d.error) {
+                errorSection.style.display = 'block';
+                document.getElementById('drawerErrorCode').textContent = d.error.code;
+                document.getElementById('drawerErrorTypeText').textContent = d.error.errorType;
+                document.getElementById('drawerErrorMessage').textContent = d.error.message;
+                document.getElementById('jsonContent').innerHTML = syntaxHighlight(JSON.stringify(d.error.json, null, 2));
+            } else {
+                errorSection.style.display = 'none';
+            }
+
+            // 高亮当前行
+            document.querySelectorAll('.data-table tbody tr').forEach((tr, i) => {
+                tr.classList.toggle('active', i === index);
+            });
+
+            // 显示侧边栏
+            document.getElementById('drawerOverlay').classList.add('active');
+            document.getElementById('detailDrawer').classList.add('active');
+            document.getElementById('mainContent').classList.add('drawer-open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawerOverlay').classList.remove('active');
+            document.getElementById('detailDrawer').classList.remove('active');
+            document.getElementById('mainContent').classList.remove('drawer-open');
+            document.querySelectorAll('.data-table tbody tr').forEach(tr => tr.classList.remove('active'));
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                        match = match.replace(':', '<span class="json-colon">:</span>');
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            }).replace(/[{}\[\]]/g, '<span class="json-bracket">$&</span>')
+              .replace(/,/g, '<span class="json-comma">,</span>');
+        }
+
+        function copyJson() {
+            const d = detailData[currentIndex];
+            if (d.error) {
+                navigator.clipboard.writeText(JSON.stringify(d.error.json, null, 2)).then(() => {
+                    const btn = document.getElementById('copyJsonBtn');
+                    btn.classList.add('copied');
+                    btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                    setTimeout(() => {
+                        btn.classList.remove('copied');
+                        btn.innerHTML = '<i class="fas fa-copy"></i> 复制';
+                    }, 2000);
+                });
+            }
+        }
+
+        function downloadJson() {
+            const d = detailData[currentIndex];
+            if (d.error) {
+                const blob = new Blob([JSON.stringify(d.error.json, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `error_response.json`;
+                a.click();
+            }
+        }
+    </script>
+</body>
+</html>
