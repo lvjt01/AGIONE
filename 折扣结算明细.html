@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGIONE · 折扣结算明细</title>
+<style>
+:root {
+  --primary:#6C5CE7;--primary-light:#A29BFE;--primary-dark:#5A4BD1;
+  --primary-bg:rgba(108,92,231,0.06);--primary-border:rgba(108,92,231,0.18);
+  --accent-green:#00D2A0;--accent-orange:#FDCB6E;--accent-red:#FF6B6B;--accent-blue:#74B9FF;
+  --bg-body:#F0F2F8;--bg-card:#FFFFFF;--bg-hover:#F8F9FC;--bg-input:#F5F6FA;
+  --text-primary:#1A1D2E;--text-secondary:#6B7280;--text-muted:#9CA3AF;
+  --border:#E5E7EB;--border-light:#F0F1F5;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:14px;
+  --shadow-card:0 2px 12px rgba(108,92,231,0.06);--shadow-md:0 4px 14px rgba(0,0,0,0.06);
+  --shadow-drawer:-8px 0 40px rgba(0,0,0,0.12);
+  --font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  --transition:0.25s cubic-bezier(0.4,0,0.2,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font-family);background:var(--bg-body);color:var(--text-primary);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:#9CA3AF;}
+
+.page-wrapper{max-width:1480px;margin:0 auto;padding:28px 32px 40px;}
+
+/* HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.page-header .logo-area{display:flex;align-items:center;gap:14px;}
+.page-header .logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;box-shadow:0 4px 14px rgba(108,92,231,0.3);}
+.page-header h1{font-size:22px;font-weight:700;letter-spacing:-0.3px;}
+.page-header h1 span{color:var(--text-muted);font-weight:400;font-size:14px;margin-left:10px;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.header-badge{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--primary-bg);border:1px solid var(--primary-border);border-radius:20px;font-size:12px;color:var(--primary);font-weight:600;}
+.header-badge .dot{width:7px;height:7px;background:var(--accent-green);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* DIMENSION BAR */
+.dimension-bar{background:var(--bg-card);border-radius:var(--radius-lg);padding:14px 24px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow-card);margin-bottom:24px;flex-wrap:wrap;}
+.dim-group{display:flex;align-items:center;}
+.dim-group-label{font-size:13.5px;font-weight:600;color:var(--text-primary);margin-right:10px;white-space:nowrap;}
+.dim-group-btns{display:flex;}
+.dim-btn{padding:7px 20px;font-size:13px;font-weight:600;color:var(--text-secondary);background:#fff;border:1.5px solid var(--border);cursor:pointer;transition:var(--transition);user-select:none;white-space:nowrap;font-family:var(--font-family);outline:none;}
+.dim-btn:first-child{border-radius:6px 0 0 6px;}
+.dim-btn:last-child{border-radius:0 6px 6px 0;}
+.dim-btn:not(:first-child){margin-left:-1.5px;}
+.dim-btn:hover{color:var(--primary);border-color:var(--primary-border);z-index:1;}
+.dim-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);z-index:2;box-shadow:0 2px 8px rgba(108,92,231,0.25);}
+.dim-sep{width:1px;height:28px;background:var(--border);margin:0 16px;flex-shrink:0;}
+
+/* OVERVIEW CARDS */
+.overview-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:24px;}
+.overview-card{background:var(--bg-card);border-radius:var(--radius-lg);padding:22px 24px;box-shadow:var(--shadow-card);position:relative;overflow:hidden;transition:var(--transition);border:1px solid transparent;}
+.overview-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--primary-border);}
+.overview-card .card-deco{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:0.08;}
+.overview-card:nth-child(1) .card-deco{background:var(--primary);}
+.overview-card:nth-child(2) .card-deco{background:var(--accent-green);}
+.overview-card:nth-child(3) .card-deco{background:var(--accent-blue);}
+.overview-card:nth-child(4) .card-deco{background:var(--accent-orange);}
+.overview-card .card-label{font-size:12.5px;color:var(--text-muted);font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.overview-card .card-label .label-dot{width:8px;height:8px;border-radius:50%;}
+.overview-card:nth-child(1) .label-dot{background:var(--primary);}
+.overview-card:nth-child(2) .label-dot{background:var(--accent-green);}
+.overview-card:nth-child(3) .label-dot{background:var(--accent-blue);}
+.overview-card:nth-child(4) .label-dot{background:var(--accent-orange);}
+.overview-card .card-value{font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1.2;}
+.overview-card .card-unit{font-size:13px;font-weight:500;color:var(--text-muted);margin-left:4px;}
+.overview-card .card-change{margin-top:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;}
+.card-change.up{color:#10B981;background:rgba(16,185,129,0.1);}
+.card-change.down{color:var(--accent-red);background:rgba(255,107,107,0.1);}
+
+/* FILTER */
+.filter-section{background:var(--bg-card);border-radius:var(--radius-lg);padding:24px 28px;box-shadow:var(--shadow-card);margin-bottom:24px;}
+.filter-section .filter-title{font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:16px;display:flex;align-items:center;gap:6px;}
+.filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 18px;}
+.filter-item{display:flex;flex-direction:column;gap:6px;}
+.filter-item label{font-size:12px;font-weight:600;color:var(--text-secondary);}
+.filter-item input,.filter-item select{height:38px;padding:0 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-primary);background:var(--bg-input);transition:var(--transition);font-family:var(--font-family);outline:none;width:100%;}
+.filter-item input:focus,.filter-item select:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(108,92,231,0.1);}
+.filter-item input::placeholder{color:var(--text-muted);}
+.filter-item .date-range{display:flex;align-items:center;gap:8px;}
+.filter-item .date-range span{color:var(--text-muted);font-size:12px;flex-shrink:0;}
+.filter-actions{display:flex;align-items:flex-end;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border-light);}
+.btn{height:38px;padding:0 24px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);border:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-family);}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;box-shadow:0 4px 12px rgba(108,92,231,0.25);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(108,92,231,0.35);}
+.btn-secondary{background:var(--bg-input);color:var(--text-secondary);border:1.5px solid var(--border);}
+.btn-secondary:hover{background:#fff;border-color:var(--primary-border);color:var(--primary);}
+
+/* TABLE */
+.table-section{background:var(--bg-card);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);overflow:hidden;}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border-light);}
+.table-header .table-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.table-header .record-count{font-size:12px;color:var(--text-muted);font-weight:500;background:var(--bg-input);padding:3px 10px;border-radius:20px;}
+.table-actions{display:flex;gap:8px;}
+.btn-icon{width:36px;height:36px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:var(--transition);}
+.btn-icon:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-bg);}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:1800px;}
+thead th{padding:12px 16px;font-size:12px;font-weight:700;color:var(--text-muted);text-align:left;background:var(--bg-input);border-bottom:1px solid var(--border-light);white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px;user-select:none;cursor:pointer;}
+thead th:hover{color:var(--primary);}
+thead th .sort-icon{display:inline-block;margin-left:4px;opacity:0.3;font-size:10px;}
+thead th:hover .sort-icon{opacity:0.7;}
+tbody td{padding:14px 16px;font-size:13px;color:var(--text-primary);border-bottom:1px solid var(--border-light);white-space:nowrap;}
+tbody tr{transition:var(--transition);}
+tbody tr:hover{background:var(--primary-bg);}
+tbody tr:last-child td{border-bottom:none;}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;}
+.tag-purple{background:rgba(108,92,231,0.1);color:var(--primary);}
+.tag-green{background:rgba(0,210,160,0.1);color:#00B894;}
+.tag-blue{background:rgba(116,185,255,0.1);color:#0984E3;}
+.tag-orange{background:rgba(253,203,110,0.1);color:#E17055;}
+.tag-gray{background:var(--bg-input);color:var(--text-secondary);}
+.cell-mono{font-family:'SF Mono','Fira Code',monospace;font-size:12.5px;font-weight:600;}
+.cell-highlight{color:var(--primary);font-weight:700;}
+.cell-green{color:#00B894;font-weight:700;}
+.btn-detail{padding:5px 14px;font-size:12px;font-weight:600;color:var(--primary);background:var(--primary-bg);border:1px solid var(--primary-border);border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);}
+.btn-detail:hover{background:var(--primary);color:#fff;box-shadow:0 3px 10px rgba(108,92,231,0.3);}
+
+/* Status tags */
+.status-settled{background:rgba(0,210,160,0.1);color:#00B894;}
+.status-pending{background:rgba(253,203,110,0.15);color:#E17055;}
+
+/* PAGINATION */
+.pagination-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-top:1px solid var(--border-light);}
+.pagination-info{font-size:12.5px;color:var(--text-muted);}
+.pagination-info strong{color:var(--text-primary);font-weight:700;}
+.pagination{display:flex;gap:4px;}
+.page-btn{min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;font-size:12.5px;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:var(--transition);padding:0 6px;}
+.page-btn:hover{border-color:var(--primary);color:var(--primary);}
+.page-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 3px 10px rgba(108,92,231,0.25);}
+.page-btn.disabled{opacity:0.4;cursor:not-allowed;pointer-events:none;}
+
+/* DRAWER */
+.drawer-overlay{position:fixed;inset:0;background:rgba(15,17,30,0.45);backdrop-filter:blur(4px);z-index:1000;opacity:0;visibility:hidden;transition:var(--transition);}
+.drawer-overlay.open{opacity:1;visibility:visible;}
+.drawer-panel{position:fixed;top:0;right:0;width:780px;max-width:94vw;height:100vh;background:var(--bg-card);z-index:1001;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;box-shadow:var(--shadow-drawer);}
+.drawer-panel.open{transform:translateX(0);}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:24px 28px 20px;border-bottom:1px solid var(--border-light);flex-shrink:0;}
+.drawer-head h3{font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.drawer-head h3 .drawer-badge{font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;background:var(--primary-bg);color:var(--primary);}
+.drawer-close{width:36px;height:36px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-secondary);transition:var(--transition);}
+.drawer-close:hover{background:rgba(255,107,107,0.1);border-color:var(--accent-red);color:var(--accent-red);}
+.drawer-body{flex:1;overflow-y:auto;padding:0;}
+.drawer-summary{padding:24px 28px;background:linear-gradient(135deg,rgba(108,92,231,0.04),rgba(162,155,254,0.04));border-bottom:1px solid var(--border-light);}
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.summary-item{text-align:center;}
+.summary-item .s-label{font-size:11.5px;color:var(--text-muted);font-weight:500;margin-bottom:4px;}
+.summary-item .s-value{font-size:20px;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px;}
+.summary-item .s-value.s-primary{color:var(--primary);}
+.summary-item .s-value.s-green{color:#00B894;}
+.summary-item .s-unit{font-size:11px;color:var(--text-muted);font-weight:500;}
+.drawer-table-wrap{padding:0;}
+.drawer-table-head{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--border-light);}
+.drawer-table-head .dt-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;}
+.drawer-table-head .dt-title::before{content:'';width:3px;height:14px;background:var(--primary);border-radius:2px;}
+.drawer-table-head .dt-count{font-size:11.5px;color:var(--text-muted);font-weight:500;background:var(--bg-input);padding:2px 10px;border-radius:20px;}
+.drawer-table-scroll{overflow-x:auto;}
+.drawer-table{width:100%;border-collapse:collapse;min-width:1200px;}
+.drawer-table thead th{padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-muted);text-align:left;background:var(--bg-input);border-bottom:1px solid var(--border-light);white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px;}
+.drawer-table tbody td{padding:11px 14px;font-size:12.5px;color:var(--text-primary);border-bottom:1px solid var(--border-light);white-space:nowrap;}
+.drawer-table tbody tr{transition:var(--transition);}
+.drawer-table tbody tr:hover{background:var(--primary-bg);}
+.drawer-table tbody tr:last-child td{border-bottom:none;}
+.row-idx{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--bg-input);border-radius:50%;font-size:11px;font-weight:700;color:var(--text-muted);}
+.drawer-footer{padding:18px 28px;border-top:1px solid var(--border-light);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;}
+
+/* RESPONSIVE */
+@media(max-width:1200px){.overview-cards{grid-template-columns:repeat(2,1fr);}.filter-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.page-wrapper{padding:16px;}.overview-cards{grid-template-columns:1fr;}.filter-grid{grid-template-columns:1fr;}.dimension-bar{flex-wrap:wrap;gap:12px;}.dim-sep{display:none;}.dim-btn{font-size:12px;padding:6px 14px;}.page-header{flex-direction:column;align-items:flex-start;gap:12px;}.summary-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <header class="page-header">
+    <div class="logo-area">
+      <div class="logo-icon">AG</div>
+      <h1>折扣结算明细 <span>Discount Settlement</span></h1>
+    </div>
+    <div class="header-right">
+      <div class="header-badge"><span class="dot"></span>系统运行中</div>
+      <div class="header-badge" style="background:rgba(0,210,160,0.08);border-color:rgba(0,210,160,0.2);color:#00B894;">账期：2026年3月</div>
+    </div>
+  </header>
+
+  <!-- DIMENSION SELECTOR -->
+  <div class="dimension-bar">
+    <div class="dim-group">
+      <span class="dim-group-label">维度:</span>
+      <div class="dim-group-btns" id="dimGroupAxis">
+        <button class="dim-btn" data-val="time" onclick="setAxis(this)">时间维度</button>
+        <button class="dim-btn active" data-val="customer" onclick="setAxis(this)">客户维度</button>
+      </div>
+    </div>
+    <div class="dim-sep"></div>
+    <div class="dim-group">
+      <span class="dim-group-label">内容:</span>
+      <div class="dim-group-btns" id="dimGroupContent">
+        <button class="dim-btn" data-val="app" onclick="setContent(this)">应用</button>
+        <button class="dim-btn active" data-val="model" onclick="setContent(this)">模型</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW CARDS -->
+  <div class="overview-cards">
+    <div class="overview-card">
+      <div class="card-deco"></div>
+      <div class="card-label"><span class="label-dot"></span>账期</div>
+      <div class="card-value">2026-03</div>
+      <div class="card-change tag-gray" style="margin-top:8px;font-size:12px;">当前账期</div>
+    </div>
+    <div class="overview-card">
+      <div class="card-deco"></div>
+      <div class="card-label"><span class="label-dot"></span>原始消耗积分</div>
+      <div class="card-value">847,530<span class="card-unit">积分</span></div>
+      <div class="card-change up">&#9650; 12.5%</div>
+    </div>
+    <div class="overview-card">
+      <div class="card-deco"></div>
+      <div class="card-label"><span class="label-dot"></span>折后应收积分</div>
+      <div class="card-value">720,400<span class="card-unit">积分</span></div>
+      <div class="card-change tag-gray" style="margin-top:8px;font-size:12px;">折扣后实收</div>
+    </div>
+    <div class="overview-card">
+      <div class="card-deco"></div>
+      <div class="card-label"><span class="label-dot"></span>已返还积分</div>
+      <div class="card-value" style="color:var(--accent-green);">127,130<span class="card-unit">积分</span></div>
+      <div class="card-change up">&#9650; 18.7%</div>
+    </div>
+  </div>
+
+  <!-- FILTER -->
+  <div class="filter-section">
+    <div class="filter-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      高级筛选
+    </div>
+    <div class="filter-grid">
+      <div class="filter-item">
+        <label>账期选择</label>
+        <select><option value="">请选择账期</option><option selected>2026年3月</option><option>2026年2月</option><option>2026年1月</option><option>2025年12月</option></select>
+      </div>
+      <div class="filter-item">
+        <label>使用时间</label>
+        <div class="date-range">
+          <input type="date" value="2026-03-01"><span>至</span><input type="date" value="2026-03-19">
+        </div>
+      </div>
+      <div class="filter-item">
+        <label>客户名称</label>
+        <input type="text" placeholder="请输入客户名称">
+      </div>
+      <div class="filter-item">
+        <label>结算状态</label>
+        <select><option value="">全部状态</option><option>已返还</option><option>待返还</option></select>
+      </div>
+      <div class="filter-item">
+        <label>模型名称</label>
+        <input type="text" placeholder="请输入模型名称">
+      </div>
+      <div class="filter-item">
+        <label>折扣策略</label>
+        <select><option value="">全部策略</option><option>85折</option><option>90折</option><option>95折</option><option>80折</option></select>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" onclick="handleQuery()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        查询
+      </button>
+      <button class="btn btn-secondary" onclick="handleReset()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        重置
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-section">
+    <div class="table-header">
+      <div class="table-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        <span id="tableTitle">客户 + 模型 折扣结算列表</span>
+        <span class="record-count" id="recordCount">共 0 条</span>
+      </div>
+      <div class="table-actions">
+        <button class="btn-icon" title="刷新" onclick="handleQuery()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+        <button class="btn-icon" title="导出">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
+    </div>
+    <div class="pagination-bar">
+      <div class="pagination-info" id="paginationInfo">显示第 <strong>0</strong> - <strong>0</strong> 条，共 <strong>0</strong> 条记录</div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer-panel" id="drawerPanel">
+  <div class="drawer-head">
+    <h3>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span id="drawerTitle">折扣结算详情</span>
+      <span class="drawer-badge" id="drawerBadge"></span>
+    </h3>
+    <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-footer">
+    <button class="btn btn-secondary" onclick="closeDrawer()">关闭</button>
+    <button class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      导出明细
+    </button>
+  </div>
+</div>
+
+<script>
+/* ============================================
+   DATA & STATE
+   ============================================ */
+const modelNames  = ['GPT-4o','Claude-3.5-Sonnet','Gemini-1.5-Pro','DALL-E 3','Whisper-V3','GLM-4','Qwen-Max','DeepSeek-V3'];
+const modelTypes  = ['大语言模型','图像生成模型','语音识别模型','多模态模型'];
+const appNames    = ['AI 智能客服','文档助手','代码生成器','图像创作台','数据分析平台','智能翻译','营销文案助手','知识库问答'];
+const custNames   = ['张伟','李娜','王磊','赵敏','刘洋','陈晨','杨帆','周明','吴佳','郑鑫','黄俊','林芳','钱程','孙颖','马超'];
+const discountOptions = [
+  { label:'85折', rate:0.85 },
+  { label:'90折', rate:0.90 },
+  { label:'95折', rate:0.95 },
+  { label:'80折', rate:0.80 },
+];
+const statusList = ['已返还','待返还'];
+
+let dimAxis    = 'customer';
+let dimContent = 'model';
+let currentDim = 'customer-model';
+let currentPage = 1;
+const pageSize  = 10;
+
+function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function randDate(){
+  const d=randInt(1,19),h=String(randInt(0,23)).padStart(2,'0'),m=String(randInt(0,59)).padStart(2,'0');
+  return `2026-03-${String(d).padStart(2,'0')} ${h}:${m}`;
+}
+
+// Assign each customer a fixed discount strategy
+const custDiscountMap = {};
+custNames.forEach(c=>{ custDiscountMap[c] = rand(discountOptions); });
+
+/* ============================================
+   GENERATE SETTLEMENT RECORDS
+   Business logic:
+   1. Customer uses a model → originalCredits (raw consumption)
+   2. Discount strategy applied → discountedCredits = originalCredits × discountRate
+   3. Refund = originalCredits - discountedCredits (the amount returned to customer)
+   4. Status: 已返还 or 待返还
+   ============================================ */
+let rawRecords = [];
+for(let i=0;i<280;i++){
+  const cust = rand(custNames);
+  const disc = custDiscountMap[cust];
+  const inp = randInt(500,30000), out = randInt(200,15000);
+  const ded_inp = randInt(0, Math.min(inp,5000)), ded_out = randInt(0, Math.min(out,2000));
+  const actual_inp = inp - ded_inp, actual_out = out - ded_out;
+  const inpRate = randInt(50,200), outRate = randInt(10,50);
+  const durationSec = randInt(1,180);
+  const originalCredits = randInt(50,6000);
+  const discountedCredits = Math.round(originalCredits * disc.rate);
+  const refundCredits = originalCredits - discountedCredits;
+
+  rawRecords.push({
+    id:               i+1,
+    useTime:          randDate(),
+    customerName:     cust,
+    durationSec,
+    duration:         `${durationSec}s`,
+    modelName:        rand(modelNames),
+    modelType:        rand(modelTypes),
+    appName:          rand(appNames),
+    inputTokens:      inp,
+    outputTokens:     out,
+    deductInputTokens:  ded_inp,
+    deductOutputTokens: ded_out,
+    actualInputTokens:  actual_inp,
+    actualOutputTokens: actual_out,
+    usage:            `输入 ${inp.toLocaleString()} / 输出 ${out.toLocaleString()} Token`,
+    deduct:           `输入：${ded_inp.toLocaleString()}Token，输出：${ded_out.toLocaleString()}Token`,
+    actualUsage:      `输入：${actual_inp.toLocaleString()}Token，输出：${actual_out.toLocaleString()}Token`,
+    billingRule:      `输入：${inpRate}Token=1积分，输出：${outRate}Token=1积分`,
+    originalCredits,
+    discountLabel:    disc.label,
+    discountRate:     disc.rate,
+    discountedCredits,
+    refundCredits,
+    status:           refundCredits > 0 ? rand(statusList) : '已返还',
+  });
+}
+rawRecords.sort((a,b)=>b.useTime.localeCompare(a.useTime));
+
+/* ============================================
+   AGGREGATE: customer dimension
+   ============================================ */
+function buildCustSummary(groupKey){
+  const map = {};
+  rawRecords.forEach(r=>{
+    const key = `${r.customerName}|||${r[groupKey]}`;
+    if(!map[key]){
+      map[key]={
+        customerName:   r.customerName,
+        groupValue:     r[groupKey],
+        modelType:      r.modelType,
+        discountLabel:  r.discountLabel,
+        discountRate:   r.discountRate,
+        callCount:      0,
+        totalDuration:  0,
+        totalInput:     0,
+        totalOutput:    0,
+        totalDeductInp: 0,
+        totalDeductOut: 0,
+        totalActualInp: 0,
+        totalActualOut: 0,
+        totalOriginal:  0,
+        totalDiscounted:0,
+        totalRefund:    0,
+        settledCount:   0,
+        pendingCount:   0,
+        records:        [],
+      };
+    }
+    const g = map[key];
+    g.callCount++;
+    g.totalDuration   += r.durationSec;
+    g.totalInput      += r.inputTokens;
+    g.totalOutput     += r.outputTokens;
+    g.totalDeductInp  += r.deductInputTokens;
+    g.totalDeductOut  += r.deductOutputTokens;
+    g.totalActualInp  += r.actualInputTokens;
+    g.totalActualOut  += r.actualOutputTokens;
+    g.totalOriginal   += r.originalCredits;
+    g.totalDiscounted += r.discountedCredits;
+    g.totalRefund     += r.refundCredits;
+    if(r.status==='已返还') g.settledCount++; else g.pendingCount++;
+    g.records.push(r);
+  });
+  const arr = Object.values(map);
+  arr.forEach(g=>{
+    g.duration    = `${g.totalDuration}s`;
+    g.usage       = `输入 ${g.totalInput.toLocaleString()} / 输出 ${g.totalOutput.toLocaleString()} Token`;
+    g.deduct      = `输入：${g.totalDeductInp.toLocaleString()}Token，输出：${g.totalDeductOut.toLocaleString()}Token`;
+    g.actualUsage = `输入：${g.totalActualInp.toLocaleString()}Token，输出：${g.totalActualOut.toLocaleString()}Token`;
+    g.billingRule = g.records[0].billingRule;
+    g.status = g.pendingCount > 0 ? `${g.settledCount}已返还 / ${g.pendingCount}待返还` : '全部已返还';
+    g.records.sort((a,b)=>b.useTime.localeCompare(a.useTime));
+  });
+  arr.sort((a,b)=>b.totalRefund - a.totalRefund);
+  return arr;
+}
+
+/* ============================================
+   COLUMN DEFINITIONS
+   ============================================ */
+const columnDefs = {
+  'time-model': [
+    { key:'useTime',           label:'使用时间' },
+    { key:'customerName',      label:'客户名称' },
+    { key:'duration',          label:'耗时' },
+    { key:'modelName',         label:'模型名称' },
+    { key:'modelType',         label:'模型类型',     tag:true },
+    { key:'usage',             label:'使用情况' },
+    { key:'deduct',            label:'抵扣' },
+    { key:'actualUsage',       label:'实际使用' },
+    { key:'billingRule',       label:'计费规则' },
+    { key:'originalCredits',   label:'积分',         highlight:true },
+    { key:'discountLabel',     label:'折扣策略',     tag:true },
+    { key:'discountedCredits', label:'折扣后积分' },
+    { key:'refundCredits',     label:'返还积分',     green:true },
+    { key:'status',            label:'返还状态',     statusTag:true },
+  ],
+  'time-app': [
+    { key:'useTime',           label:'使用时间' },
+    { key:'customerName',      label:'客户名称' },
+    { key:'duration',          label:'耗时' },
+    { key:'appName',           label:'应用名称' },
+    { key:'modelType',         label:'应用类型',     tag:true },
+    { key:'usage',             label:'使用情况' },
+    { key:'deduct',            label:'抵扣' },
+    { key:'actualUsage',       label:'实际使用' },
+    { key:'billingRule',       label:'计费规则' },
+    { key:'originalCredits',   label:'积分',         highlight:true },
+    { key:'discountLabel',     label:'折扣策略',     tag:true },
+    { key:'discountedCredits', label:'折扣后积分' },
+    { key:'refundCredits',     label:'返还积分',     green:true },
+    { key:'status',            label:'返还状态',     statusTag:true },
+  ],
+  'customer-model': [
+    { key:'customerName',      label:'客户名称' },
+    { key:'callCount',         label:'调用次数' },
+    { key:'duration',          label:'总耗时' },
+    { key:'groupValue',        label:'模型名称' },
+    { key:'modelType',         label:'模型类型',     tag:true },
+    { key:'usage',             label:'使用情况' },
+    { key:'deduct',            label:'抵扣' },
+    { key:'actualUsage',       label:'实际使用' },
+    { key:'billingRule',       label:'计费规则' },
+    { key:'totalOriginal',     label:'积分',         highlight:true },
+    { key:'discountLabel',     label:'折扣策略',     tag:true },
+    { key:'totalDiscounted',   label:'折扣后积分' },
+    { key:'totalRefund',       label:'返还积分',     green:true },
+    { key:'status',            label:'返还状态' },
+    { key:'_action',           label:'操作' },
+  ],
+  'customer-app': [
+    { key:'customerName',      label:'客户名称' },
+    { key:'callCount',         label:'调用次数' },
+    { key:'duration',          label:'总耗时' },
+    { key:'groupValue',        label:'应用名称' },
+    { key:'modelType',         label:'应用类型',     tag:true },
+    { key:'usage',             label:'使用情况' },
+    { key:'deduct',            label:'抵扣' },
+    { key:'actualUsage',       label:'实际使用' },
+    { key:'billingRule',       label:'计费规则' },
+    { key:'totalOriginal',     label:'积分',         highlight:true },
+    { key:'discountLabel',     label:'折扣策略',     tag:true },
+    { key:'totalDiscounted',   label:'折扣后积分' },
+    { key:'totalRefund',       label:'返还积分',     green:true },
+    { key:'status',            label:'返还状态' },
+    { key:'_action',           label:'操作' },
+  ],
+};
+
+function getTagClass(v){
+  if(v==='大语言模型') return 'tag-purple';
+  if(v==='图像生成模型') return 'tag-green';
+  if(v==='语音识别模型') return 'tag-blue';
+  if(v==='多模态模型') return 'tag-orange';
+  if(/折/.test(v)) return 'tag-purple';
+  return 'tag-gray';
+}
+
+/* ============================================
+   DATA SOURCE
+   ============================================ */
+let custModelSummary = [];
+let custAppSummary   = [];
+
+function getCurrentData(){
+  if(currentDim==='customer-model'){
+    if(!custModelSummary.length) custModelSummary = buildCustSummary('modelName');
+    return custModelSummary;
+  }
+  if(currentDim==='customer-app'){
+    if(!custAppSummary.length) custAppSummary = buildCustSummary('appName');
+    return custAppSummary;
+  }
+  return rawRecords;
+}
+
+/* ============================================
+   RENDER TABLE
+   ============================================ */
+function renderTable(){
+  const data = getCurrentData();
+  const cols = columnDefs[currentDim];
+  const total = data.length;
+  const totalPages = Math.ceil(total/pageSize);
+  const start = (currentPage-1)*pageSize;
+  const pageData = data.slice(start, start+pageSize);
+
+  let headHTML = '<tr>';
+  cols.forEach(c=>{ headHTML += `<th>${c.label} <span class="sort-icon">&#8597;</span></th>`; });
+  headHTML += '</tr>';
+  document.getElementById('tableHead').innerHTML = headHTML;
+
+  let bodyHTML = '';
+  pageData.forEach((row,idx)=>{
+    bodyHTML += '<tr>';
+    cols.forEach(c=>{
+      if(c.key==='_action'){
+        bodyHTML += `<td><button class="btn-detail" onclick="openDrawer(${start+idx})">详情</button></td>`;
+      } else if(c.green){
+        const v = typeof row[c.key]==='number'?row[c.key].toLocaleString():row[c.key];
+        bodyHTML += `<td><span class="cell-mono cell-green">+${v}</span></td>`;
+      } else if(c.highlight){
+        const v = typeof row[c.key]==='number'?row[c.key].toLocaleString():row[c.key];
+        bodyHTML += `<td><span class="cell-mono cell-highlight">${v}</span></td>`;
+      } else if(c.statusTag){
+        const cls = row[c.key]==='已返还'?'status-settled':'status-pending';
+        bodyHTML += `<td><span class="tag ${cls}">${row[c.key]}</span></td>`;
+      } else if(c.tag){
+        bodyHTML += `<td><span class="tag ${getTagClass(row[c.key])}">${row[c.key]}</span></td>`;
+      } else if(c.key==='callCount'){
+        bodyHTML += `<td><span class="cell-mono" style="color:var(--accent-blue);font-weight:700;">${row[c.key]} 次</span></td>`;
+      } else if(c.key==='discountedCredits'||c.key==='totalDiscounted'){
+        const v = typeof row[c.key]==='number'?row[c.key].toLocaleString():row[c.key];
+        bodyHTML += `<td><span class="cell-mono">${v}</span></td>`;
+      } else {
+        bodyHTML += `<td>${row[c.key]}</td>`;
+      }
+    });
+    bodyHTML += '</tr>';
+  });
+  document.getElementById('tableBody').innerHTML = bodyHTML;
+  document.getElementById('recordCount').textContent = `共 ${total} 条`;
+  const endIdx = Math.min(start+pageSize, total);
+  document.getElementById('paginationInfo').innerHTML = `显示第 <strong>${total?start+1:0}</strong> - <strong>${endIdx}</strong> 条，共 <strong>${total}</strong> 条记录`;
+  renderPagination(totalPages);
+}
+
+function renderPagination(tp){
+  let h = `<button class="page-btn ${currentPage===1?'disabled':''}" onclick="goPage(${currentPage-1})">&laquo;</button>`;
+  const mx=7;let s=Math.max(1,currentPage-3),e=Math.min(tp,s+mx-1);if(e-s<mx-1)s=Math.max(1,e-mx+1);
+  if(s>1){h+=`<button class="page-btn" onclick="goPage(1)">1</button>`;if(s>2)h+=`<button class="page-btn disabled">...</button>`;}
+  for(let i=s;i<=e;i++)h+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  if(e<tp){if(e<tp-1)h+=`<button class="page-btn disabled">...</button>`;h+=`<button class="page-btn" onclick="goPage(${tp})">${tp}</button>`;}
+  h+=`<button class="page-btn ${currentPage===tp||!tp?'disabled':''}" onclick="goPage(${currentPage+1})">&raquo;</button>`;
+  document.getElementById('pagination').innerHTML=h;
+}
+function goPage(p){const d=getCurrentData();const tp=Math.ceil(d.length/pageSize);if(p<1||p>tp)return;currentPage=p;renderTable();document.querySelector('.table-section').scrollIntoView({behavior:'smooth',block:'start'});}
+
+/* ============================================
+   DIMENSION SWITCH
+   ============================================ */
+function setAxis(el){
+  document.querySelectorAll('#dimGroupAxis .dim-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');dimAxis=el.dataset.val;applyDimension();
+}
+function setContent(el){
+  document.querySelectorAll('#dimGroupContent .dim-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');dimContent=el.dataset.val;applyDimension();
+}
+function applyDimension(){
+  currentDim=`${dimAxis}-${dimContent}`;currentPage=1;
+  const labels={
+    'time-model':'时间 + 模型 折扣结算明细',
+    'time-app':'时间 + 应用 折扣结算明细',
+    'customer-model':'客户 + 模型 折扣结算列表',
+    'customer-app':'客户 + 应用 折扣结算列表',
+  };
+  document.getElementById('tableTitle').textContent=labels[currentDim];renderTable();
+}
+
+function handleQuery(){
+  const btn=event.target.closest('.btn')||event.target.closest('.btn-icon');
+  if(btn){btn.style.transform='scale(0.96)';setTimeout(()=>{btn.style.transform='';},150);}
+  currentPage=1;renderTable();
+}
+function handleReset(){
+  document.querySelectorAll('.filter-item input[type="text"]').forEach(el=>el.value='');
+  document.querySelectorAll('.filter-item select').forEach(el=>el.selectedIndex=0);
+  currentPage=1;renderTable();
+}
+
+/* ============================================
+   DRAWER
+   ============================================ */
+function openDrawer(idx){
+  const data=getCurrentData();const row=data[idx];if(!row)return;
+  const isCust=currentDim.startsWith('customer');
+  const isModel=currentDim.endsWith('model');
+
+  if(isCust){
+    document.getElementById('drawerTitle').textContent='客户折扣结算详情';
+    document.getElementById('drawerBadge').textContent=row.customerName;
+    let html='';
+
+    // Summary
+    html+=`<div class="drawer-summary">
+      <div class="summary-row">
+        <div class="summary-item"><div class="s-label">客户名称</div><div class="s-value">${row.customerName}</div></div>
+        <div class="summary-item"><div class="s-label">${isModel?'模型名称':'应用名称'}</div><div class="s-value" style="font-size:15px;">${row.groupValue}</div></div>
+        <div class="summary-item"><div class="s-label">${isModel?'模型类型':'应用类型'}</div><div class="s-value"><span class="tag ${getTagClass(row.modelType)}">${row.modelType}</span></div></div>
+        <div class="summary-item"><div class="s-label">折扣策略</div><div class="s-value"><span class="tag tag-purple">${row.discountLabel}</span></div></div>
+      </div>
+      <div class="summary-row" style="margin-top:16px;">
+        <div class="summary-item"><div class="s-label">调用次数</div><div class="s-value" style="color:#0984E3;">${row.callCount}<span class="s-unit"> 次</span></div></div>
+        <div class="summary-item"><div class="s-label">总耗时</div><div class="s-value">${row.totalDuration}<span class="s-unit"> s</span></div></div>
+        <div class="summary-item"><div class="s-label">总积分</div><div class="s-value s-primary">${row.totalOriginal.toLocaleString()}<span class="s-unit"> 积分</span></div></div>
+        <div class="summary-item"><div class="s-label">折扣后积分</div><div class="s-value">${row.totalDiscounted.toLocaleString()}<span class="s-unit"> 积分</span></div></div>
+      </div>
+      <div class="summary-row" style="margin-top:16px;grid-template-columns:repeat(3,1fr);">
+        <div class="summary-item"><div class="s-label">已返还积分</div><div class="s-value s-green">${row.totalRefund.toLocaleString()}<span class="s-unit"> 积分</span></div></div>
+        <div class="summary-item"><div class="s-label">总使用量</div><div class="s-value" style="font-size:13px;">${row.usage}</div></div>
+        <div class="summary-item"><div class="s-label">总抵扣</div><div class="s-value" style="font-size:13px;">输入：${row.totalDeductInp.toLocaleString()}Token<br>输出：${row.totalDeductOut.toLocaleString()}Token</div></div>
+      </div>
+    </div>`;
+
+    // Record list
+    const recs=row.records;
+    html+=`<div class="drawer-table-wrap">
+      <div class="drawer-table-head"><div class="dt-title">逐笔结算记录</div><div class="dt-count">${recs.length} 条</div></div>
+      <div class="drawer-table-scroll"><table class="drawer-table"><thead><tr>
+        <th>#</th><th>使用时间</th><th>耗时</th><th>${isModel?'模型名称':'应用名称'}</th><th>使用情况</th><th>抵扣</th><th>实际使用</th><th>计费规则</th><th>积分</th><th>折扣策略</th><th>折扣后积分</th><th>返还积分</th><th>状态</th>
+      </tr></thead><tbody>`;
+    recs.forEach((r,i)=>{
+      const sCls=r.status==='已返还'?'status-settled':'status-pending';
+      html+=`<tr>
+        <td><span class="row-idx">${i+1}</span></td>
+        <td>${r.useTime}</td>
+        <td>${r.duration}</td>
+        <td>${isModel?r.modelName:r.appName}</td>
+        <td>${r.usage}</td>
+        <td>${r.deduct}</td>
+        <td>${r.actualUsage}</td>
+        <td style="font-size:11.5px;color:var(--text-secondary);">${r.billingRule}</td>
+        <td><span class="cell-mono cell-highlight">${r.originalCredits.toLocaleString()}</span></td>
+        <td><span class="tag tag-purple">${r.discountLabel}</span></td>
+        <td><span class="cell-mono">${r.discountedCredits.toLocaleString()}</span></td>
+        <td><span class="cell-mono cell-green">+${r.refundCredits.toLocaleString()}</span></td>
+        <td><span class="tag ${sCls}">${r.status}</span></td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+    document.getElementById('drawerBody').innerHTML=html;
+
+  } else {
+    // Time dimension: single record detail
+    document.getElementById('drawerTitle').textContent='结算记录详情';
+    document.getElementById('drawerBadge').textContent=isModel?row.modelName:row.appName;
+    const sCls=row.status==='已返还'?'status-settled':'status-pending';
+    let html=`<div style="padding:28px;">
+      <div style="margin-bottom:24px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+          <span style="width:3px;height:14px;background:var(--primary);border-radius:2px;display:inline-block;"></span>基础信息
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--border-light);border-radius:var(--radius-md);overflow:hidden;">
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">使用时间</div><div style="font-size:14px;font-weight:600;">${row.useTime}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">客户名称</div><div style="font-size:14px;font-weight:600;">${row.customerName}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">耗时</div><div style="font-size:14px;font-weight:600;">${row.duration}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">${isModel?'模型名称':'应用名称'}</div><div style="font-size:14px;font-weight:600;">${isModel?row.modelName:row.appName}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">${isModel?'模型类型':'应用类型'}</div><div style="font-size:14px;font-weight:600;"><span class="tag ${getTagClass(row.modelType)}">${row.modelType}</span></div></div>
+        </div>
+      </div>
+      <div style="margin-bottom:24px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+          <span style="width:3px;height:14px;background:var(--primary);border-radius:2px;display:inline-block;"></span>使用与计费
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--border-light);border-radius:var(--radius-md);overflow:hidden;">
+          <div style="background:#fff;padding:14px 18px;grid-column:1/-1;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">使用情况</div><div style="font-size:14px;font-weight:600;">${row.usage}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">抵扣</div><div style="font-size:14px;font-weight:600;">${row.deduct}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">实际使用</div><div style="font-size:14px;font-weight:600;">${row.actualUsage}</div></div>
+          <div style="background:#fff;padding:14px 18px;grid-column:1/-1;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">计费规则</div><div style="font-size:14px;font-weight:600;">${row.billingRule}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">积分</div><div style="font-size:18px;font-weight:800;color:var(--primary);">${row.originalCredits.toLocaleString()}</div></div>
+        </div>
+      </div>
+      <div style="margin-bottom:24px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+          <span style="width:3px;height:14px;background:var(--primary);border-radius:2px;display:inline-block;"></span>折扣结算
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--border-light);border-radius:var(--radius-md);overflow:hidden;">
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">折扣策略</div><div style="font-size:14px;font-weight:600;"><span class="tag tag-purple">${row.discountLabel}</span></div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">折扣后积分</div><div style="font-size:14px;font-weight:600;">${row.discountedCredits.toLocaleString()}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">返还积分</div><div style="font-size:18px;font-weight:800;color:#00B894;">+${row.refundCredits.toLocaleString()}</div></div>
+          <div style="background:#fff;padding:14px 18px;"><div style="font-size:11.5px;color:var(--text-muted);margin-bottom:4px;">返还状态</div><div style="font-size:14px;font-weight:600;"><span class="tag ${sCls}">${row.status}</span></div></div>
+        </div>
+      </div>
+    </div>`;
+    document.getElementById('drawerBody').innerHTML=html;
+  }
+
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('drawerPanel').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeDrawer(){
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('drawerPanel').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+
+/* INIT */
+document.getElementById('tableTitle').textContent='客户 + 模型 折扣结算列表';
+renderTable();
+</script>
+</body>
+</html>
